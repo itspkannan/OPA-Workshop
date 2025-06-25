@@ -46,9 +46,39 @@ Available commands:
   test            Run tests with Pytest and show coverage
 ```
 
-## API and OPA Integration for Authorization
+## API, Middleware and OPA Integration
 
-## 👤 UserController – API Overview
+### 🔐 Authentication Middleware
+
+This project uses a custom **authentication middleware** that extracts the user role from the incoming HTTP request headers and delegates access control decisions to the `AuthorizationService`.
+
+#### 📌 Header-Based Role Identification
+
+The middleware expects a custom HTTP header `x-role` to identify the user's role (e.g., `admin`, `user`, `guest`).
+
+If the header is **missing**, it **defaults to `guest`**, which typically has **no access rights**, following the **Principle of Least Privilege** — users are granted only the minimum access necessary. As a result, such requests are rejected unless explicitly permitted for the `guest` role.
+
+* `x-role`: Custom header used to indicate the user's role
+* Defaults to `guest` if missing
+* Uses `AuthorizationService` to verify access
+* Rejects requests that are not authorized for the role
+
+### ✅ Example Request
+
+```http
+GET /users HTTP/1.1
+Host: localhost:8080
+x-role: admin
+```
+
+If `x-role` is omitted:
+
+```http
+GET /users HTTP/1.1
+Host: localhost:8080
+```
+
+### 👤 UserController – API Overview
 
 The `UserController` defines a simple CRUD interface for user management. It is responsible for handling the following endpoints:
 
@@ -66,6 +96,10 @@ All endpoints in the `UserController` are protected by **OPA policies**. Each re
 * `x-role` header from the request
 * HTTP method (GET, POST, etc.)
 * Endpoint path (`request.path`)
+
+### OPA Integration
+
+![OPA](docs/opa_deployment.png)
 
 Rego policy for `GET` endpoint:
 
