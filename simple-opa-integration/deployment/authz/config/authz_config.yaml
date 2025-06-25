@@ -1,0 +1,9 @@
+# This is to mimic loading from remote secured location
+services:
+  - name: authz_policies
+    url: http://bundle-server:8888
+
+bundles:
+  authz:
+    service: authz_policies
+    resource: /bundle.tar.gz

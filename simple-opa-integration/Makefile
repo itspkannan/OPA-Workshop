@@ -12,6 +12,7 @@ PIP_CONF_GLOBAL := $(addsuffix /Library/Application Support/pip/pip.conf,$(HOME)
 DOCKERFILE ?= dockerfile
 IMAGE_NAME ?= "simple-opa-integration:latest"
 AUTHZ_PROFILE ?= authz-v1
+OPA_IMAGE ?= openpolicyagent/opa:latest
 
 ifeq ($(UNAME_S),Linux)
 	POETRY_AUTH_CONF := $(addsuffix /auth.toml,$(POETRY_HOME))
@@ -69,11 +70,11 @@ test:  ## Run tests with Pytest and show coverage
 
 .PHONY: policy_check
 policy_check: ## Run OPA check on Policies
-	@docker run --rm -v $(PWD):/app openpolicyagent/opa:latest check /app/policies
+	@docker run --rm -v $(PWD):/app $(OPA_IMAGE) check /app/policies
 
 .PHONY: policy_eval
 policy_eval: ## Evaluate the Rego Policies
-	@docker run --rm -v $(PWD):/app openpolicyagent/opa:latest eval -d /app/policies  'data.simple.authz'
+	@docker run --rm -v $(PWD):/app $(OPA_IMAGE) eval -d /app/policies  'data.simple.authz'
 
 .PHONY: policy_test
 policy_test: ## Test the policy against with a valid input
@@ -81,6 +82,10 @@ policy_test: ## Test the policy against with a valid input
       -H "Content-Type: application/json" \
       -d '{"input": {"method": "GET", "path": ["api", "v1", "users"], "user": {"role": "admin"}}}'
 
+.PHONY: policy_build
+policy_build:  ## Build policies into a gzipped file
+	@mkdir -p authz/dist ; \
+	    docker run --rm -v $(PWD)/deployment/authz:/authz -w /authz $(OPA_IMAGE) build -o dist/bundle.tar.gz policies/
 
 .PHONY: infra_init
 infra_init: ## Create the infrastructure
@@ -98,7 +103,7 @@ authz_start: ## Start Authorization Service (Open Policy Agent)
 authz_stop: ## Stop Authorization Service (Open Policy Agent)
 	@docker compose --profile $(AUTHZ_PROFILE) down
 
-.PHONY: authz_stop
+.PHONY: authz_logs
 authz_logs: ## View logs of Authorization Service (Open Policy Agent)
 	@docker compose --profile $(AUTHZ_PROFILE) logs
 

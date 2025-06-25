@@ -40,6 +40,7 @@ Available commands:
   infra_init      Create the infrastructure
   init            Initialize the Poetry development environment
   lint            Run static analysis with Ruff and Mypy
+  policy_build    Build policies into a gzipped file
   policy_check    Run OPA check on Policies
   policy_eval     Evaluate the Rego Policies
   policy_test     Test the policy against with a valid input
@@ -102,6 +103,76 @@ All endpoints in the `UserController` are protected by **OPA policies**. Each re
 
 ### OPA Integration
 
+This project supports **two modes** for running the Open Policy Agent (OPA) Authorization Service:
+
+### 1️⃣ Local Policy Mount (authz-v1)
+
+In this mode, the OPA container is started with policies mounted directly from the local filesystem.
+
+**Docker Compose Service:**
+
+```yaml
+authz-service-v1:
+  profiles: ["authz-v1"]
+  image: openpolicyagent/opa:latest
+  command: ["run", "--server", "--addr", "0.0.0.0:8181", "/policies"]
+  volumes:
+    - $PWD/deployment/authz/policies:/policies
+```
+
+**Start Command:**
+
+```bash
+make AUTHZ_PROFILE=authz-v1 authz_start
+```
+
+OPA will **immediately load and serve policies** found under `deployment/authz/policies`.
+
+### 2️⃣ Remote Bundle Server (authz-v2)
+
+In this mode, OPA loads its policies from a **remote bundle server** via a config file.
+
+**Docker Compose Services:**
+
+* `bundle-server`: Serves policy bundles from `deployment/authz/dist`
+* `authz-service-v2`: Fetches and loads policies via `authz_config.yaml`
+
+**OPA Config File:** `deployment/authz/config/authz_config.yaml`
+
+```yaml
+services:
+  - name: bundle-server
+    url: http://bundle-server:8888
+bundles:
+  authz:
+    service: bundle-server
+    resource: /bundle.tar.gz
+    polling:
+      min_delay_seconds: 10
+      max_delay_seconds: 20
+```
+
+**Start Command:**
+
+```bash
+make AUTHZ_PROFILE=authz-v2 authz_start
+```
+
+OPA will **fetch `bundle.tar.gz`** from the bundle server and load policies dynamically.
+
+### 🔁 Switching Between Modes
+
+Use the `AUTHZ_PROFILE` Makefile variable to switch between the two modes:
+
+```bash
+# Local policy mount
+make AUTHZ_PROFILE=authz-v1 start
+
+# Remote bundle via server
+make AUTHZ_PROFILE=authz-v2 start
+```
+
+
 ![OPA](docs/opa_deployment.png)
 
 Rego policy for `GET` endpoint:
@@ -134,6 +205,8 @@ Example using Curl
       -H "Content-Type: application/json" \
       -d '{"input": {"method": "GET", "path": ["api", "v1", "users", "b71207a4-ddac-493c-857d-f6d116289505"], "user": {"role": "viewer"}}}'
 ```
+
+---
 
 ### 📚 References
 

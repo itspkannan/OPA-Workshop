@@ -12,14 +12,35 @@ services:
     networks:
       - app
 
+  bundle-server:
+    profiles: [ "authz-v2" ]
+    image: python:3.12-slim
+    container_name: bundle-server
+    working_dir: /bundle
+    command: python3 -m http.server 8888
+    volumes:
+      - $PWD/deployment/authz/dist:/bundle
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      - app
+
   authz-service-v2:
     profiles: [ "authz-v2" ]
     hostname: authz-service
     container_name: authz-service-v2
     image: openpolicyagent/opa:latest
-    command: [ "run", "--server", "--addr", "0.0.0.0:8181", "/policies" ]
+    command:
+      - run
+      - --server
+      - --addr
+      - 0.0.0.0:8181
+      - --config-file
+      - /authz/config/authz_config.yaml
     volumes:
-      - $PWD/policies:/policies
+      - $PWD/deployment/authz/config:/authz/config
+    depends_on:
+      - bundle-server
     ports:
       - "127.0.0.1:8181:8181"
     networks:
