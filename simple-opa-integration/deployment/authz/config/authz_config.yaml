@@ -14,5 +14,7 @@ bundles:
 decision_logs:
   console: true
   level: debug
+  formatting:
+    json: true
 
 default_decision: /simple/authz/allow
