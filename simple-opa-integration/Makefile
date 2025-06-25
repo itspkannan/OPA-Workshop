@@ -11,6 +11,7 @@ PIP_CONF_USER_OLD := $(addsuffix /.pip/pip.conf,$(HOME))
 PIP_CONF_GLOBAL := $(addsuffix /Library/Application Support/pip/pip.conf,$(HOME))
 DOCKERFILE ?= dockerfile
 IMAGE_NAME ?= "simple-opa-integration:latest"
+AUTHZ_PROFILE ?= authz-v1
 
 ifeq ($(UNAME_S),Linux)
 	POETRY_AUTH_CONF := $(addsuffix /auth.toml,$(POETRY_HOME))
@@ -90,12 +91,16 @@ infra_cleanup: ## Cleanup the infrastructure
 	@docker network remove app
 
 .PHONY: authz_start
-authz_start: ## Start Authorization Service(Open Policy Agent)
-	@docker compose --profile authz up -d
+authz_start: ## Start Authorization Service (Open Policy Agent)
+	docker compose --profile $(AUTHZ_PROFILE) up -d
 
 .PHONY: authz_stop
-authz_stop: ## Stop Authorization Service(Open Policy Agent)
-	@docker compose --profile authz down
+authz_stop: ## Stop Authorization Service (Open Policy Agent)
+	@docker compose --profile $(AUTHZ_PROFILE) down
+
+.PHONY: authz_stop
+authz_logs: ## View logs of Authorization Service (Open Policy Agent)
+	@docker compose --profile $(AUTHZ_PROFILE) logs
 
 .PHONY: app_start
 app_start: ## Start App
@@ -104,6 +109,10 @@ app_start: ## Start App
 .PHONY: app_stop
 app_stop: ## Stop App
 	@docker compose --profile app down
+
+.PHONY: app_logs
+app_logs: ## View application logs
+	@docker compose --profile app logs
 
 .PHONY: start
 start: authz_start app_start  ## Start Authorization Services and Application
@@ -120,4 +129,7 @@ docker_build: ## Build application docker image
 	@docker build -f dockerfile -t $(IMAGE_NAME)  .
 
 docker_image_view: ## View Application docker image view
-    @dive $(IMAGE_NAME)
+	@dive $(IMAGE_NAME)
+
+runtime_view:  ## view the active docker container
+	@docker container ls

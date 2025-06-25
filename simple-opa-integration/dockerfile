@@ -39,7 +39,7 @@ COPY --from=app-builder /app/.venv /app/.venv/
 
 COPY main.py /app
 COPY simple_opa_integration /app/simple_opa_integration
-COPY config /app/config
+COPY deployment/app/config /app/config
 
 RUN groupadd -r opa-simple --gid=10000 && \
     useradd --no-create-home -s /bin/false -r -g opa-simple --uid=999 opa-simple && \

@@ -24,10 +24,12 @@ This Python project is a **proof of concept** demonstrating the integration of [
 ❯ make help
 
 Available commands:
+  app_logs        View application logs
   app_start       Start App
   app_stop        Stop App
-  authz_start     Start Authorization Service(Open Policy Agent)
-  authz_stop      Stop Authorization Service(Open Policy Agent)
+  authz_logs      View logs of Authorization Service (Open Policy Agent)
+  authz_start     Start Authorization Service (Open Policy Agent)
+  authz_stop      Stop Authorization Service (Open Policy Agent)
   cleanup         Cleanup the developmenet environment temporary files
   docker_build    Build application docker image
   docker_image_view View Application docker image view
@@ -41,6 +43,7 @@ Available commands:
   policy_check    Run OPA check on Policies
   policy_eval     Evaluate the Rego Policies
   policy_test     Test the policy against with a valid input
+  runtime_view    view the active docker container
   start           Start Authorization Services and Application
   stop            Start Authorization Services and Application
   test            Run tests with Pytest and show coverage

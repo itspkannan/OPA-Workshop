@@ -55,3 +55,4 @@ test_*.py
 
 
 .vscode
+db.sqlite

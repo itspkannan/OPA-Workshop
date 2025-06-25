@@ -1,10 +1,23 @@
 services:
-  authz-service:
-    profiles: ["authz"]
+  authz-service-v1:
+    profiles: ["authz-v1"]
     hostname: authz-service
-    container_name: authz-service
+    container_name: authz-service-v1
     image: openpolicyagent/opa:latest
     command: ["run", "--server", "--addr", "0.0.0.0:8181", "/policies"]
+    volumes:
+      - $PWD/deployment/authz/policies:/policies
+    ports:
+      - "127.0.0.1:8181:8181"
+    networks:
+      - app
+
+  authz-service-v2:
+    profiles: [ "authz-v2" ]
+    hostname: authz-service
+    container_name: authz-service-v2
+    image: openpolicyagent/opa:latest
+    command: [ "run", "--server", "--addr", "0.0.0.0:8181", "/policies" ]
     volumes:
       - $PWD/policies:/policies
     ports:
@@ -22,8 +35,6 @@ services:
       - AUTHZ_SERVER_PORT=8181
       - WEB_SERVER_HOST=0.0.0.0
       - WEB_SERVER_PORT=8080
-    volumes:
-      - $PWD/config:/app/config
     ports:
       - "127.0.0.1:8080:8080"
     networks:
