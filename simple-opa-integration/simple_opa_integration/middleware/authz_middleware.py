@@ -8,7 +8,7 @@ def register_auth_middleware():
     async def auth_middleware(request):
         auth_service = Container.resolve(AuthorizationService)
         user_role = request.headers.get("x-role", "guest")
-        allowed = await auth_service.is_allowed(user_role, request.method, request.path)
-        if not allowed:
+        response = await auth_service.is_allowed(user_role, request.method, request.path)
+        if not response.get('allow', False):
             raise Forbidden("Access Denied")
     return auth_middleware

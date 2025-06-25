@@ -2,9 +2,7 @@
 
 ## 🔍 Project Overview
 
-This Python project is a **proof of concept** demonstrating the integration of [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) for **authorization of a REST API**. It showcases best practices in dependency management, linting, testing, and containerization using modern Python tooling.
-
----
+This Python project is a **proof of concept** demonstrating the integration of [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) for **authorization of a REST API**. 
 
 ## ✨ Features
 
@@ -47,3 +45,70 @@ Available commands:
   stop            Start Authorization Services and Application
   test            Run tests with Pytest and show coverage
 ```
+
+## API and OPA Integration for Authorization
+
+## 👤 UserController – API Overview
+
+The `UserController` defines a simple CRUD interface for user management. It is responsible for handling the following endpoints:
+
+### Endpoints
+
+| Method | Endpoint      | Description             | Role Check    |
+| ------ | ------------- | ----------------------- |---------------|
+| GET    | `/users`      | Fetch all users         | Admin         |
+| POST   | `/users`      | Create a new user       | Admin         |
+| PUT    | `/users/<id>` | Update an existing user | Admin or User |
+| DELETE | `/users/<id>` | Delete a user           | Admin         |
+
+All endpoints in the `UserController` are protected by **OPA policies**. Each request is authorized using a custom Sanic middleware that queries the OPA engine to evaluate access based on:
+
+* `x-role` header from the request
+* HTTP method (GET, POST, etc.)
+* Endpoint path (`request.path`)
+
+Rego policy for `GET` endpoint:
+
+```rego
+package simple.authz
+
+default allow = false
+
+allow {
+    input.role == "admin"
+}
+
+allow if {
+    input.method == "GET"
+    input.path = ["api", "v1", "users", user_id]
+    is_valid_uuid(user_id)
+    input.user.role in {"admin", "viewer"}
+}
+
+```
+
+Figure 2 illustrates a API call to OPA using Postman
+
+![Execution](docs/postman.png)
+
+Example using Curl
+```
+	@curl -X POST http://127.0.0.1:8181/v1/data/simple/authz/allow \
+      -H "Content-Type: application/json" \
+      -d '{"input": {"method": "GET", "path": ["api", "v1", "users", "b71207a4-ddac-493c-857d-f6d116289505"], "user": {"role": "viewer"}}}'
+```
+
+### 📚 References
+
+* **[Open Policy Agent (OPA)](https://www.openpolicyagent.org/):** General-purpose policy engine used for authorization.
+* **[Rego](https://www.openpolicyagent.org/docs/latest/policy-language/):** Declarative language for defining policies in OPA.
+* **[Sanic](https://sanic.dev/):** Python web framework used to build async APIs.
+* **[Docker](https://www.docker.com/):** Used for containerizing and running the OPA server and services.
+
+
+**Disclaimer**
+This project is developed purely as a Proof of Concept (POC) for learning and demonstration purposes.
+
+All references, documentation, and external materials used during development are listed in the References section. If any source has been unintentionally omitted, it is purely accidental.
+
+This project is not intended for production use. 
