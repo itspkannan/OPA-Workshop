@@ -1,0 +1,59 @@
+[project]
+name = "simple-opa-integration"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Priyesh Kannan",email = "10197527+PriyeshKannan@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "sanic (>=25.3.0,<26.0.0)",
+    "uvloop (>=0.21.0,<0.22.0)",
+    "aiohttp (>=3.12.13,<4.0.0)",
+    "envyaml (>=1.10.211231,<2.0.0)",
+    "environs (>=14.2.0,<15.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.12.0"
+mypy = "^1.16.1"
+pytest = "^8.4.1"
+coverage = "^7.9.1"
+pre-commit = "^4.2.0"
+pytest-cov = "^6.2.1"
+pytest-asyncio = "^1.0.0"
+pytest-mock = "^3.14.1"
+aioresponses = "^0.7.8"
+pytest-sanic = "^1.9.1"
+sanic-testing = "^24.6.0"
+report = "^0.0.1"
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+fix = true
+src = ["basic_opa_integration"]
+
+[tool.ruff.format]
+quote-style = "preserve"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D203", "D212", "COM812"]
+exclude = ["tests/*"]
+
+[tool.mypy]
+strict = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=simple_opa_integration --cov-report=term-missing"
+testpaths = ["tests"]

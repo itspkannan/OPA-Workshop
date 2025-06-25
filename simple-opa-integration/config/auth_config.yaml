@@ -1,0 +1,6 @@
+
+
+authorization:
+    host: ${AUTHZ_SERVER_HOST|"127.0.0.1"}
+    port: ${AUTHZ_SERVER_POST|8181}
+    uri: "/v1/data/simple/authz"
