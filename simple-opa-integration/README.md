@@ -148,8 +148,8 @@ bundles:
     service: bundle-server
     resource: /bundle.tar.gz
     polling:
-      min_delay_seconds: 10
-      max_delay_seconds: 20
+      min_delay_seconds: 300
+      max_delay_seconds: 600
 ```
 
 **Start Command:**
