@@ -66,10 +66,20 @@ lint:  dockerfile_lint ## Run static analysis with Ruff and Mypy
 test:  ## Run tests with Pytest and show coverage
 	@poetry run pytest
 
-.PHONY: validate_policy
-validate_policy: ## Validate Rego Policies
-	@docker run --rm -v $(PWD):/app openpolicyagent/opa:latest eval -d /app/policies  'data.simple.authz'
+.PHONY: policy_check
+policy_check: ## Run OPA check on Policies
 	@docker run --rm -v $(PWD):/app openpolicyagent/opa:latest check /app/policies
+
+.PHONY: policy_eval
+policy_eval: ## Evaluate the Rego Policies
+	@docker run --rm -v $(PWD):/app openpolicyagent/opa:latest eval -d /app/policies  'data.simple.authz'
+
+.PHONY: policy_test
+policy_test: ## Test the policy against with a valid input
+	@curl -X POST http://127.0.0.1:8181/v1/data/simple/authz/allow \
+      -H "Content-Type: application/json" \
+      -d '{"input": {"method": "GET", "path": ["api", "v1", "users"], "user": {"role": "admin"}}}'
+
 
 .PHONY: infra_init
 infra_init: ## Create the infrastructure
@@ -109,3 +119,5 @@ dockerfile_lint: ## Run lint for dockerfile
 docker_build: ## Build application docker image
 	@docker build -f dockerfile -t $(IMAGE_NAME)  .
 
+docker_image_view: ## View Application docker image view
+    @dive $(IMAGE_NAME)

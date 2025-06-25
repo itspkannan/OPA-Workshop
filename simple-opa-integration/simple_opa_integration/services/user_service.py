@@ -1,19 +1,6 @@
 import sqlite3
 
 class UserService:
-    def __init__(self):
-        self._init_db()
-
-    def _init_db(self):
-        with sqlite3.connect("db.sqlite") as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL
-                )
-            """)
-            conn.commit()
-
     def get_all(self):
         with sqlite3.connect("db.sqlite") as conn:
             return conn.execute("SELECT id, name FROM users").fetchall()

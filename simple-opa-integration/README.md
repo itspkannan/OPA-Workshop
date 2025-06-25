@@ -32,6 +32,7 @@ Available commands:
   authz_stop      Stop Authorization Service(Open Policy Agent)
   cleanup         Cleanup the developmenet environment temporary files
   docker_build    Build application docker image
+  docker_image_view View Application docker image view
   dockerfile_lint Run lint for dockerfile
   format          Format code using Ruff (Black-compatible)
   help            Help message
@@ -39,8 +40,10 @@ Available commands:
   infra_init      Create the infrastructure
   init            Initialize the Poetry development environment
   lint            Run static analysis with Ruff and Mypy
+  policy_check    Run OPA check on Policies
+  policy_eval     Evaluate the Rego Policies
+  policy_test     Test the policy against with a valid input
   start           Start Authorization Services and Application
   stop            Start Authorization Services and Application
   test            Run tests with Pytest and show coverage
-  validate_policy Validate Rego Policies
 ```

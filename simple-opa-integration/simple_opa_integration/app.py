@@ -1,5 +1,5 @@
 from functools import partial
-
+import sqlite3
 from sanic import Sanic
 from sanic.worker.loader import AppLoader
 
@@ -13,6 +13,18 @@ from simple_opa_integration.services.configuration_service import ConfigurationS
 from simple_opa_integration.services.user_service import UserService
 
 
+
+def _init_db(self):
+    with sqlite3.connect("db.sqlite") as conn:
+        conn.execute("""
+                     CREATE TABLE IF NOT EXISTS users
+                     (
+                         id INTEGER PRIMARY KEY AUTOINCREMENT,
+                         name TEXT NOT NULL
+                     )
+                     """)
+        conn.commit()
+
 def __bootstrap(config_dir: str):
     config_service = ConfigurationService()
     Container.register(ConfigurationService, lambda: config_service)
@@ -20,18 +32,20 @@ def __bootstrap(config_dir: str):
     Container.register(AuthorizationService, lambda: AuthorizationService(auth_config))
     user_service = UserService()
     Container.register(UserService, lambda: user_service)
-    print(Container.resolve(UserService))
 
-def __create_app(config_dir: str, app_name: str):
+def __create_app(config_dir: str, app_name: str, **kwargs):
     __bootstrap(config_dir)
     app = Sanic(app_name)
     middleware_fn = register_auth_middleware()
     app.register_middleware(middleware_fn, attach_to="request")
     register_routes(app)
+    app.register_listener(_init_db, "before_server_start")
     return app
 
 def startup(config_dir: str, app_name: str = 'OPAWithSanic'):
     loader = AppLoader(factory=partial(__create_app, config_dir, app_name))
+
+    # Safe to load manually just for prepare()
     app = loader.load()
 
     config_service = Container.resolve(ConfigurationService)
@@ -44,4 +58,5 @@ def startup(config_dir: str, app_name: str = 'OPAWithSanic'):
         dev=server_config.dev,
         access_log=server_config.access_log
     )
+
     Sanic.serve(primary=app, app_loader=loader)

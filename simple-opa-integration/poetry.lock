@@ -1312,14 +1312,14 @@ files = [
 
 [[package]]
 name = "sanic"
-version = "25.3.0"
+version = "24.12.0"
 description = "A web server and web framework that's written to go fast. Build fast. Run fast."
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "sanic-25.3.0-py3-none-any.whl", hash = "sha256:fb519b38b4c220569b0e2e868583ffeaffaab96a78b2e42ae78bc56a644a4cd7"},
-    {file = "sanic-25.3.0.tar.gz", hash = "sha256:775d522001ec81f034ec8e4d7599e2175bfc097b8d57884f5e4c9322f5e369bb"},
+    {file = "sanic-24.12.0-py3-none-any.whl", hash = "sha256:3c2a01ec0b6c5926e3efe34eac1b497d31ed989038fe213eb25ad0c98687d388"},
+    {file = "sanic-24.12.0.tar.gz", hash = "sha256:09c23aa917616c1e60e44c66dfd7582cb9fd6503f78298c309945909f5839836"},
 ]
 
 [package.dependencies]
@@ -1342,6 +1342,25 @@ docs = ["autodocsumm (>=0.2.11)", "docutils", "enum-tools[sphinx]", "m2r2", "mis
 ext = ["sanic-ext"]
 http3 = ["aioquic"]
 test = ["bandit", "beautifulsoup4", "chardet (==3.*)", "coverage", "docutils", "mypy", "pygments", "pytest (>=8.2.2)", "pytest-benchmark", "pytest-sanic", "ruff", "sanic-testing (>=23.6.0)", "slotscheck (>=0.8.0,<1)", "types-ujson ; sys_platform != \"win32\" and implementation_name == \"cpython\"", "uvicorn"]
+
+[[package]]
+name = "sanic-ext"
+version = "24.12.0"
+description = "Extend your Sanic installation with some core functionality."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "sanic_ext-24.12.0-py3-none-any.whl", hash = "sha256:861f809f071770cf28acd5f13e97ed59985e07361b13b4b4540da1333730c83e"},
+    {file = "sanic_ext-24.12.0.tar.gz", hash = "sha256:8f912f4c29f242bc638346d09b79f0c8896ff64e79bd0e7fa09eac4b6c0e23c8"},
+]
+
+[package.dependencies]
+pyyaml = ">=3.0.0"
+
+[package.extras]
+dev = ["Jinja2", "black (>=21.4b2)", "coverage", "flake8 (>=3.7.7)", "isort (>=5.0.0)", "pytest", "pytest-asyncio", "pytest-cov", "sanic_testing (>=22.9.0)", "tox"]
+test = ["Jinja2", "coverage", "pytest", "pytest-asyncio", "pytest-cov", "sanic_testing (>=22.9.0)", "tox"]
 
 [[package]]
 name = "sanic-routing"
@@ -1796,4 +1815,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "5b6f21640a565e7cbe40abd696e3598b46e51cdb551152fd49e52e51acfb01bd"
+content-hash = "8b64509cb8e938d1b6a972bd9bdf9604d523c959b2cfbf670ebc70dbc6c90094"

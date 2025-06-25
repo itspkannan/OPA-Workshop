@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(repr=True, frozen=True)
 class AuthConfig:
     host: str
     port: int

@@ -20,7 +20,7 @@ allow if {
     input.method == "GET"
     input.path = ["api", "v1", "users", user_id]
     is_valid_uuid(user_id)
-    input.user.role == "admin"
+    input.user.role in {"admin", "user"}
 }
 
 allow if{

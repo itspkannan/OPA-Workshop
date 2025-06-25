@@ -13,7 +13,7 @@ class AuthorizationService:
                 "method": method,
                 "path": path.strip("/").split("/"),
                 "user": {
-                    "role": "admin"
+                    "role": user_role
                 }
             }
         }
