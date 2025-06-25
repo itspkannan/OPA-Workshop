@@ -7,14 +7,12 @@ class AuthorizationService:
     def __init__(self, config: AuthConfig):
         self.config = config
 
-    async def is_allowed(self, user_role: str, method: str, path: str) -> bool:
+    async def is_allowed(self, token: str, method: str, path: str) -> bool:
         input_data = {
             "input": {
                 "method": method,
                 "path": path.strip("/").split("/"),
-                "user": {
-                    "role": user_role
-                }
+                "token": token
             }
         }
         async with aiohttp.ClientSession() as session:

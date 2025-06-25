@@ -6,9 +6,9 @@ from simple_opa_integration.services.authorization_service import AuthorizationS
 
 def register_auth_middleware():
     async def auth_middleware(request):
+        token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
         auth_service = Container.resolve(AuthorizationService)
-        user_role = request.headers.get("x-role", "guest")
-        response = await auth_service.is_allowed(user_role, request.method, request.path)
+        response = await auth_service.is_allowed(token, request.method, request.path)
         if not response.get('allow', False):
             raise Forbidden("Access Denied")
     return auth_middleware

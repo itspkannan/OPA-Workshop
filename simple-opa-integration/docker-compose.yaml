@@ -4,7 +4,15 @@ services:
     hostname: authz-service
     container_name: authz-service-v1
     image: openpolicyagent/opa:latest
-    command: ["run", "--server", "--addr", "0.0.0.0:8181", "/policies"]
+    command:
+      - run
+      - --server
+      - --addr
+      - 0.0.0.0:8181
+      - --log-level
+      - debug
+      - --set=decision_logs.console=true
+      - /policies
     volumes:
       - $PWD/deployment/authz/policies:/policies
     ports:
@@ -35,6 +43,8 @@ services:
       - --server
       - --addr
       - 0.0.0.0:8181
+      - --log-level
+      - debug
       - --config-file
       - /authz/config/authz_config.yaml
     volumes:

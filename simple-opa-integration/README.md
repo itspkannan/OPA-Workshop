@@ -1,10 +1,10 @@
 # Simple OPA Integration Project
 
-## 🔍 Project Overview
-
 This Python project is a **proof of concept** demonstrating the integration of [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) for **authorization of a REST API**. 
 
-## ✨ Features
+## Development Guideline
+
+### ✨ Features
 
 * 📦 Python 3.11 with [Poetry](https://python-poetry.org/) for dependency and virtualenv management
 * 🧹 Code Quality:
@@ -16,9 +16,7 @@ This Python project is a **proof of concept** demonstrating the integration of [
 * 🐳 Docker support
 * 🔐 Open Policy Agent (OPA) integration for dynamic API authorization
 
----
-
-## 🚀 Usage
+### 🚀 Usage
 
 ```bash
 ❯ make help
@@ -50,36 +48,43 @@ Available commands:
   test            Run tests with Pytest and show coverage
 ```
 
-## API, Middleware and OPA Integration
 
 ### 🔐 Authentication Middleware
 
-This project uses a custom **authentication middleware** that extracts the user role from the incoming HTTP request headers and delegates access control decisions to the `AuthorizationService`.
+### Code Structure
 
-#### 📌 Header-Based Role Identification
+### OPA Policies
 
-The middleware expects a custom HTTP header `x-role` to identify the user's role (e.g., `admin`, `user`, `guest`).
+The policies are split into reusable packages:
 
-If the header is **missing**, it **defaults to `guest`**, which typically has **no access rights**, following the **Principle of Least Privilege** — users are granted only the minimum access necessary. As a result, such requests are rejected unless explicitly permitted for the `guest` role.
+* `common.jwt_utils`: Responsible for decoding and verifying JWTs
+* `simple.authz`: Implements authorization rules using decoded claims
 
-* `x-role`: Custom header used to indicate the user's role
-* Defaults to `guest` if missing
-* Uses `AuthorizationService` to verify access
-* Rejects requests that are not authorized for the role
-
-### ✅ Example Request
-
-```http
-GET /users HTTP/1.1
-Host: localhost:8080
-x-role: admin
+```
+deployment/authz/policies/
+├── common/
+│   └── jwt_utils.rego     # JWT decode & verification logic
+├── authz/
+│   └── policy.rego        # Authorization rules using decoded token
 ```
 
-If `x-role` is omitted:
+---
+
+## API, Middleware and OPA Integration
+
+### 🔐 Authentication with JWT
+
+The middleware uses the `Authorization` HTTP header to extract a **JWT token**. This token contains the user's role, which is verified and decoded securely using OPA.
+
+1. `Authorization: Bearer <JWT_TOKEN>` is passed with the request
+2. Middleware forwards the token, method, and path to OPA
+3. OPA decodes and verifies the token
+4. Access is allowed or denied based on decoded role
 
 ```http
 GET /users HTTP/1.1
 Host: localhost:8080
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### 👤 UserController – API Overview
@@ -179,18 +184,17 @@ Rego policy for `GET` endpoint:
 
 ```rego
 package simple.authz
+import data.common.utils.is_valid_uuid
+import data.common.utils.jwt.decode_token
 
 default allow = false
 
-allow {
-    input.role == "admin"
-}
-
 allow if {
+    claims := decode_token(input.token)
+    claims.role in {"admin", "viewer"}
     input.method == "GET"
     input.path = ["api", "v1", "users", user_id]
     is_valid_uuid(user_id)
-    input.user.role in {"admin", "viewer"}
 }
 
 ```
@@ -199,11 +203,26 @@ Figure 2 illustrates a API call to OPA using Postman
 
 ![Execution](docs/postman.png)
 
-Example using Curl
-```
-	@curl -X POST http://127.0.0.1:8181/v1/data/simple/authz/allow \
-      -H "Content-Type: application/json" \
-      -d '{"input": {"method": "GET", "path": ["api", "v1", "users", "b71207a4-ddac-493c-857d-f6d116289505"], "user": {"role": "viewer"}}}'
+```bash
+❯ AUTHZ_PROFILE=authz-v2 make start
+docker compose --profile authz-v2 up -d
+[+] Running 2/0
+ ✔ Container bundle-server     Running                                                                                                                                                                                                          0.0s
+ ✔ Container authz-service-v2  Running                                                                                                                                                                                                          0.0s
+[+] Running 1/0
+ ✔ Container simple-opa-integration  Running                                                                                                                                                                                                    0.0s
+❯ make policy_test
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 25.1.1
+[notice] To update, run: pip install --upgrade pip
+🔐 Generated JWT:
+ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUwODc3NDk4fQ.2thGSPs6t3AMZGAvW-XiXDHvDbyF-Sce4HaKK2b-WD8
+
+📡 Sending request to OPA...
+
+📥 OPA Response:
+{"decision_id":"61ee564a-d5a3-4e79-9e08-5d06089208af","result":{"allow":false}}
 ```
 
 ---

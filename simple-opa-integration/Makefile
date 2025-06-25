@@ -77,10 +77,9 @@ policy_eval: ## Evaluate the Rego Policies
 	@docker run --rm -v $(PWD):/app $(OPA_IMAGE) eval -d /app/policies  'data.simple.authz'
 
 .PHONY: policy_test
-policy_test: ## Test the policy against with a valid input
-	@curl -X POST http://127.0.0.1:8181/v1/data/simple/authz/allow \
-      -H "Content-Type: application/json" \
-      -d '{"input": {"method": "GET", "path": ["api", "v1", "users"], "user": {"role": "admin"}}}'
+policy_test: ## Test the policy against a valid input using JWT token
+	@docker run --network app --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
+		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_policy.py"
 
 .PHONY: policy_build
 policy_build:  ## Build policies into a gzipped file
@@ -133,8 +132,15 @@ dockerfile_lint: ## Run lint for dockerfile
 docker_build: ## Build application docker image
 	@docker build -f dockerfile -t $(IMAGE_NAME)  .
 
+.PHONY: docker_image_view
 docker_image_view: ## View Application docker image view
 	@dive $(IMAGE_NAME)
 
+.PHONY: runtime_view
 runtime_view:  ## view the active docker container
 	@docker container ls
+
+.PHONY: generate_token
+generate_token:  ## Generate a mock JWT token using Docker CLI
+	@docker run --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
+	    sh -c "pip install --no-cache-dir pyjwt && python3 generate_token.py"
