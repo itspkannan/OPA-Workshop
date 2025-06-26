@@ -37,21 +37,23 @@ Available commands:
   docker_image_view View Application docker image view
   dockerfile_lint Run lint for dockerfile
   format          Format code using Ruff (Black-compatible)
+  generate_token  Generate a mock JWT token using Docker CLI
   help            Help message
   infra_cleanup   Cleanup the infrastructure
   infra_init      Create the infrastructure
   init            Initialize the Poetry development environment
   lint            Run static analysis with Ruff and Mypy
+  localstack_start Start localstack service for S3
+  localstack_stop Stop localstack service
   policy_build    Build policies into a gzipped file
   policy_check    Run OPA check on Policies
   policy_eval     Evaluate the Rego Policies
-  policy_test     Test the policy against with a valid input
+  policy_test     Test the policy against a valid input using JWT token
   runtime_view    view the active docker container
   start           Start Authorization Services and Application
   stop            Start Authorization Services and Application
   test            Run tests with Pytest and show coverage
 ```
-
 
 ---
 
@@ -153,6 +155,29 @@ bundles:
       max_delay_seconds: 600
 ```
 
+
+```bash
+❯ AUTHZ_PROFILE=authz-v2 make start
+docker compose --profile authz-v2 up -d
+[+] Running 2/0
+ ✔ Container bundle-server     Running                                                                                                                                                                                                          0.0s
+ ✔ Container authz-service-v2  Running                                                                                                                                                                                                          0.0s
+[+] Running 1/0
+ ✔ Container simple-opa-integration  Running                                                                                                                                                                                                    0.0s
+❯ make policy_test
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 25.1.1
+[notice] To update, run: pip install --upgrade pip
+🔐 Generated JWT:
+ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUwODc3NDk4fQ.2thGSPs6t3AMZGAvW-XiXDHvDbyF-Sce4HaKK2b-WD8
+
+📡 Sending request to OPA...
+
+📥 OPA Response:
+{"decision_id":"61ee564a-d5a3-4e79-9e08-5d06089208af","result":{"allow":false}}
+```
+
 **Start Command:**
 
 ```bash
@@ -161,6 +186,52 @@ make AUTHZ_PROFILE=authz-v2 authz_start
 
 OPA will **fetch `bundle.tar.gz`** from the bundle server and load policies dynamically.
 
+### 🪣 3️⃣ AWS S3 Bucket – Policy Bundle Deployment (authz-v3)
+In this mode, OPA dynamically fetches policies from an S3 bucket, simulating a cloud-native deployment where policy bundles are managed in object storage. This reflects how production-grade services often fetch policy bundles from secured S3 buckets, governed by IAM roles for authorization.
+
+In the POC setup, LocalStack is used to mock AWS services like S3 for local testing.
+
+🚀 Start Command
+To build policies, deploy to S3, and start the services:
+
+AUTHZ_PROFILE=authz-v3 make policy_build start s3_deploy policy_test
+
+```
+❯ AUTHZ_PROFILE=authz-v3 make stop policy_build start s3_deploy policy_test
+[+] Running 2/2
+ ✔ Container authz-service-s3  Removed                                                                                                                                                                                                          0.1s
+ ✔ Container aws-mock-service  Removed                                                                                                                                                                                                          3.8s
+[+] Running 1/1
+ ✔ Container simple-opa-integration  Removed                                                                                                                                                                                                    0.6s
+WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+docker compose --profile authz-v3 up -d
+[+] Running 3/3
+ ✔ Container aws-mock-service                                                                                                                                      Started                                                                      0.1s
+ ✔ Container authz-service-s3                                                                                                                                      Started                                                                      0.2s
+ ! authz-service-s3 The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested                                                                              0.0s
+[+] Running 1/1
+ ✔ Container simple-opa-integration  Started                                                                                                                                                                                                    0.1s
+
+[INFO] Deploying bundle.tar.gz to S3 Bucket
+
+🪣 Creating bucket ...
+make_bucket: simple-app
+📦 Uploading bundle.tar.gz to s3://simple-app...
+upload: ../authz/bundle.tar.gz to s3://simple-app/authz/bundle.tar.gz
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 25.1.1
+[notice] To update, run: pip install --upgrade pip
+/app/validate_policy.py:12: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
+🔐 Generated JWT:
+ eyJhbGciOiJIUzI1NiIsImtpZCI6InNhbXBsZS1hcHAiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUwOTE5NjQ4fQ.qvCvtfE77iRnH8SfpVpkGJkbQPV6ftPM4UfN8fWYvxE
+
+📡 Sending request to OPA...
+
+📥 OPA Response:
+{"decision_id":"46275026-1757-4adc-8338-312108cf1239","result":{"allow":true}}
+```
 ### 🔁 Switching Between Modes
 
 Use the `AUTHZ_PROFILE` Makefile variable to switch between the two modes:
@@ -198,28 +269,6 @@ allow if {
 Figure 2 illustrates a API call to OPA using Postman
 
 ![Execution](docs/postman.png)
-
-```bash
-❯ AUTHZ_PROFILE=authz-v2 make start
-docker compose --profile authz-v2 up -d
-[+] Running 2/0
- ✔ Container bundle-server     Running                                                                                                                                                                                                          0.0s
- ✔ Container authz-service-v2  Running                                                                                                                                                                                                          0.0s
-[+] Running 1/0
- ✔ Container simple-opa-integration  Running                                                                                                                                                                                                    0.0s
-❯ make policy_test
-WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
-
-[notice] A new release of pip is available: 25.0.1 -> 25.1.1
-[notice] To update, run: pip install --upgrade pip
-🔐 Generated JWT:
- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUwODc3NDk4fQ.2thGSPs6t3AMZGAvW-XiXDHvDbyF-Sce4HaKK2b-WD8
-
-📡 Sending request to OPA...
-
-📥 OPA Response:
-{"decision_id":"61ee564a-d5a3-4e79-9e08-5d06089208af","result":{"allow":false}}
-```
 
 ---
 

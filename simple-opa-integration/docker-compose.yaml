@@ -57,7 +57,7 @@ services:
       - app
 
   aws-mock-service:
-    profiles: [ "authz-s3" ]
+    profiles: [ "authz-v3" ]
     hostname: aws-mock-service
     container_name: aws-mock-service
     image: localstack/localstack:4.5.0-arm64
@@ -75,7 +75,7 @@ services:
       - app
 
   authz-service-s3:
-    profiles: [ "authz-s3" ]
+    profiles: [ "authz-v3" ]
     hostname: authz-service
     container_name: authz-service-s3
     image: openpolicyagent/opa:latest

@@ -151,14 +151,14 @@ localstack_start:  ## Start localstack service for S3
 	@echo ""
 	@echo "[INFO] Starting localstack Service "
 	@echo ""
-	@docker compose --profile authz-s3 up -d aws-mock-service
+	@docker compose --profile authz-v3 up -d aws-mock-service
 
 .PHONY: localstack_stop
 localstack_stop:  ## Stop localstack service
 	@echo ""
 	@echo "[INFO] Stopping localstack Service "
 	@echo ""
-	@docker compose --profile authz-s3 down aws-mock-service
+	@docker compose --profile authz-v3 down aws-mock-service
 
 .PHONY: s3_deploy
 s3_deploy:  ## Deploy the policy to S3 bucket
@@ -181,7 +181,6 @@ s3_deploy:  ## Deploy the policy to S3 bucket
 	  s3 cp /authz/$(POLICY_BUNDLE_DIST) s3://simple-app/authz/$(POLICY_BUNDLE_DIST) \
 	  --endpoint-url http://aws-mock-service:4566 \
 	  --content-type application/gzip
-
 
 s3_deploy_check:
 	@echo ""
