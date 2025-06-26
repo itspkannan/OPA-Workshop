@@ -56,6 +56,47 @@ services:
     networks:
       - app
 
+  aws-mock-service:
+    profiles: [ "authz-s3" ]
+    hostname: aws-mock-service
+    container_name: aws-mock-service
+    image: localstack/localstack:4.5.0-arm64
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4571:4571"
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-west-1
+      - AWS_DEFAULT_REGION=us-west-1
+    networks:
+      - app
+
+  authz-service-s3:
+    profiles: [ "authz-s3" ]
+    hostname: authz-service
+    container_name: authz-service-s3
+    image: openpolicyagent/opa:latest
+    command:
+      - run
+      - --server
+      - --addr
+      - 0.0.0.0:8181
+      - --log-level
+      - debug
+      - --config-file
+      - /authz/config/authz_config.yaml
+    volumes:
+      - $PWD/deployment/authz/s3:/authz/config
+    depends_on:
+      - aws-mock-service
+    ports:
+      - "127.0.0.1:8181:8181"
+    networks:
+      - app
+
   simple-microservice:
     profiles: ["app"]
     hostname: simple-opa-integration

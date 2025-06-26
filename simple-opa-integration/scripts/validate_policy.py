@@ -9,17 +9,21 @@ payload = {
     "sub": "1234567890",
     "name": "Jane Doe",
     "role": "admin",
-    "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1),
+    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
 }
 
-token = jwt.encode(payload, SECRET, algorithm="HS256")
+headers = {
+    "kid": "sample-app"
+}
+
+token = jwt.encode(payload, SECRET, algorithm="HS256", headers=headers)
 print("🔐 Generated JWT:\n", token)
 
 opa_input = {
     "input": {
         "token": token,
         "method": "GET",
-        "path": ["users"]
+        "path": ["api","v1", "users"]
     }
 }
 opa_input_json = json.dumps(opa_input)

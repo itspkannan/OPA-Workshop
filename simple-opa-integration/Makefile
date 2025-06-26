@@ -13,7 +13,7 @@ DOCKERFILE ?= dockerfile
 IMAGE_NAME ?= "simple-opa-integration:latest"
 AUTHZ_PROFILE ?= authz-v1
 OPA_IMAGE ?= openpolicyagent/opa:latest
-
+POLICY_BUNDLE_DIST ?=bundle.tar.gz
 ifeq ($(UNAME_S),Linux)
 	POETRY_AUTH_CONF := $(addsuffix /auth.toml,$(POETRY_HOME))
 endif
@@ -70,11 +70,11 @@ test:  ## Run tests with Pytest and show coverage
 
 .PHONY: policy_check
 policy_check: ## Run OPA check on Policies
-	@docker run --rm -v $(PWD):/app $(OPA_IMAGE) check /app/policies
+	@docker run --rm -v $(PWD)/deployment/authz:/authz $(OPA_IMAGE) check /authz/policies
 
 .PHONY: policy_eval
 policy_eval: ## Evaluate the Rego Policies
-	@docker run --rm -v $(PWD):/app $(OPA_IMAGE) eval -d /app/policies  'data.simple.authz'
+	@docker run --rm -v $(PWD)/deployment/authz:/authz $(OPA_IMAGE) eval -d /authz/policies  'data.simple.authz'
 
 .PHONY: policy_test
 policy_test: ## Test the policy against a valid input using JWT token
@@ -83,8 +83,9 @@ policy_test: ## Test the policy against a valid input using JWT token
 
 .PHONY: policy_build
 policy_build:  ## Build policies into a gzipped file
-	@mkdir -p authz/dist ; \
-	    docker run --rm -v $(PWD)/deployment/authz:/authz -w /authz $(OPA_IMAGE) build -o dist/bundle.tar.gz policies/
+	@rm -rf $(PWD)/deployment/authz/dist
+	@mkdir -p $(PWD)/deployment/authz/dist
+	@docker run --rm -v $(PWD)/deployment/authz:/authz -w /authz $(OPA_IMAGE) build -o dist/$(POLICY_BUNDLE_DIST) policies/
 
 .PHONY: infra_init
 infra_init: ## Create the infrastructure
@@ -144,3 +145,49 @@ runtime_view:  ## view the active docker container
 generate_token:  ## Generate a mock JWT token using Docker CLI
 	@docker run --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
 	    sh -c "pip install --no-cache-dir pyjwt && python3 generate_token.py"
+
+.PHONY: localstack_start
+localstack_start:  ## Start localstack service for S3
+	@echo ""
+	@echo "[INFO] Starting localstack Service "
+	@echo ""
+	@docker compose --profile authz-s3 up -d aws-mock-service
+
+.PHONY: localstack_stop
+localstack_stop:  ## Stop localstack service
+	@echo ""
+	@echo "[INFO] Stopping localstack Service "
+	@echo ""
+	@docker compose --profile authz-s3 down aws-mock-service
+
+.PHONY: s3_deploy
+s3_deploy:  ## Deploy the policy to S3 bucket
+	@echo ""
+	@echo "[INFO] Deploying $(POLICY_BUNDLE_DIST) to S3 Bucket "
+	@echo ""
+	@echo "🪣 Creating bucket ..."
+	@docker run --rm --network app \
+	  -e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test \
+	  -e AWS_REGION=us-west-1 -e AWS_DEFAULT_REGION=us-west-1 \
+	  amazon/aws-cli \
+	  s3 mb s3://simple-app --endpoint-url http://aws-mock-service:4566 || true
+
+	@echo "📦 Uploading $(POLICY_BUNDLE_DIST) to s3://simple-app..."
+	@docker run --rm --network app \
+	  -v $(PWD)/deployment/authz/dist:/authz \
+	  -e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test \
+	  -e AWS_REGION=us-west-1 -e AWS_DEFAULT_REGION=us-west-1 \
+	  amazon/aws-cli \
+	  s3 cp /authz/$(POLICY_BUNDLE_DIST) s3://simple-app/authz/$(POLICY_BUNDLE_DIST) \
+	  --endpoint-url http://aws-mock-service:4566 \
+	  --content-type application/gzip
+
+
+s3_deploy_check:
+	@echo ""
+	@echo "[INFO] Validate deployment of $(POLICY_BUNDLE_DIST) to S3 Bucket "
+	@echo ""
+	@docker run --rm --network app \
+	-e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test \
+	-e AWS_REGION=us-west-1 -e AWS_DEFAULT_REGION=us-west-1 \
+	amazon/aws-cli s3 ls s3://simple-app/authz/$(POLICY_BUNDLE_DIST) --endpoint-url http://host.docker.internal:4566

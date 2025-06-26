@@ -16,5 +16,3 @@ decision_logs:
   level: debug
   formatting:
     json: true
-
-default_decision: /simple/authz/allow

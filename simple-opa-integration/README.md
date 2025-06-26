@@ -2,9 +2,13 @@
 
 This Python project is a **proof of concept** demonstrating the integration of [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) for **authorization of a REST API**. 
 
-## Development Guideline
+The poc include following approaches of loading `Policies`
+1.  Local File System.
+2.  Loading from a Remote service( in poc a Python web service is started to serve the Policy).
+3.  Loading from AWS S3 bucket (The security is controlled by POD's IAM rules in actual Prod deployment)
 
-### ✨ Features
+
+## ✨ Features
 
 * 📦 Python 3.11 with [Poetry](https://python-poetry.org/) for dependency and virtualenv management
 * 🧹 Code Quality:
@@ -16,7 +20,7 @@ This Python project is a **proof of concept** demonstrating the integration of [
 * 🐳 Docker support
 * 🔐 Open Policy Agent (OPA) integration for dynamic API authorization
 
-### 🚀 Usage
+###🚀 Usage
 
 ```bash
 ❯ make help
@@ -49,30 +53,10 @@ Available commands:
 ```
 
 
-### 🔐 Authentication Middleware
-
-### Code Structure
-
-### OPA Policies
-
-The policies are split into reusable packages:
-
-* `common.jwt_utils`: Responsible for decoding and verifying JWTs
-* `simple.authz`: Implements authorization rules using decoded claims
-
-```
-deployment/authz/policies/
-├── common/
-│   └── jwt_utils.rego     # JWT decode & verification logic
-├── authz/
-│   └── policy.rego        # Authorization rules using decoded token
-```
-
 ---
 
-## API, Middleware and OPA Integration
 
-### 🔐 Authentication with JWT
+## API, Middleware and OPA Integration
 
 The middleware uses the `Authorization` HTTP header to extract a **JWT token**. This token contains the user's role, which is verified and decoded securely using OPA.
 
@@ -82,7 +66,7 @@ The middleware uses the `Authorization` HTTP header to extract a **JWT token**. 
 4. Access is allowed or denied based on decoded role
 
 ```http
-GET /users HTTP/1.1
+GET /api/v1/users HTTP/1.1
 Host: localhost:8080
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
@@ -108,7 +92,19 @@ All endpoints in the `UserController` are protected by **OPA policies**. Each re
 
 ### OPA Integration
 
-This project supports **two modes** for running the Open Policy Agent (OPA) Authorization Service:
+This project supports **three modes** for running the Open Policy Agent (OPA) Authorization Service:
+
+The policies are split into reusable packages:
+
+* `common.jwt_utils`: Responsible for decoding and verifying JWTs
+* `simple.authz`: Implements authorization rules using decoded claims
+
+```
+deployment/authz/policies/
+├── common/   #  Helper methods used by the policy
+├── authz/    # Application route Authorization Policies  
+```
+
 
 ### 1️⃣ Local Policy Mount (authz-v1)
 
