@@ -97,15 +97,15 @@ test.rego: ## Test the policy against a valid input using JWT token
 
 .PHONY: clean.rego
 clean.rego:  ## Cleanup policies build folder
-	@rm -rf $(PWD)/deployment/authz/dist || true
+	@rm -rf $(PWD)/dist/authz || true
 
 .PHONY: build.rego
 build.rego: clean.rego ## Build policies into a gzipped file
-	@mkdir -p $(PWD)/deployment/authz/dist
-	@docker run --rm -v $(PWD)/deployment/authz:/authz -w /authz $(OPA_IMAGE) build -o dist/$(POLICY_BUNDLE_DIST) policies/
+	@mkdir -p $(PWD)/dist/authz
+	@docker run --rm -v $(PWD)/src/main/rego:/authz/src/main/rego/ -v $(PWD)/dist/authz:/authz/dist -w /authz $(OPA_IMAGE) build -o dist/$(POLICY_BUNDLE_DIST) src/main/rego/
 
 build.python: ## Build python source
-	@poetry build
+	@poetry build --output dist/app
 
 .PHONY: init.infra
 init.infra: ## Create the infrastructure

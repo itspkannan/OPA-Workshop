@@ -14,7 +14,7 @@ services:
       - --set=decision_logs.console=true
       - /policies
     volumes:
-      - $PWD/deployment/authz/policies:/policies
+      - $PWD/src/main/rego:/policies
     ports:
       - "127.0.0.1:8181:8181"
     networks:
