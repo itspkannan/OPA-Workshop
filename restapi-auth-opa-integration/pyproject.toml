@@ -1,5 +1,5 @@
 [project]
-name = "simple-opa-integration"
+name = "restapi-auth-opa-integration"
 version = "0.1.0"
 description = ""
 authors = [
@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [[tool.poetry.packages]]
-include = "simple_opa_integration"
+include = "restapi_auth_opa_integration"
 from = "src/main/python"
 
 [build-system]
@@ -43,7 +43,7 @@ report = "^0.0.1"
 line-length = 100
 target-version = "py311"
 fix = true
-src = ["simple_opa_integration"]
+src = ["src/main/python/restapi_auth_opa_integration"]
 
 [tool.ruff.format]
 quote-style = "preserve"

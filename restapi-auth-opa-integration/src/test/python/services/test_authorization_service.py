@@ -1,7 +1,7 @@
 import pytest
 from aioresponses import aioresponses
-from simple_opa_integration.services.authorization_service import AuthorizationService
-from simple_opa_integration.config.auth_config import AuthConfig
+from restapi_auth_opa_integration.services.authorization_service import AuthorizationService
+from restapi_auth_opa_integration.config.auth_config import AuthConfig
 
 @pytest.mark.asyncio
 async def test_is_allowed_true():

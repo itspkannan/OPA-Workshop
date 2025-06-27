@@ -1,7 +1,7 @@
 from sanic.exceptions import Forbidden
 
-from simple_opa_integration.container import Container
-from simple_opa_integration.services.authorization_service import AuthorizationService
+from restapi_auth_opa_integration.container import Container
+from restapi_auth_opa_integration.services.authorization_service import AuthorizationService
 
 
 def register_auth_middleware():

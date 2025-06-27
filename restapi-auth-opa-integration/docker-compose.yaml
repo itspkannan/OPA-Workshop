@@ -97,11 +97,11 @@ services:
     networks:
       - app
 
-  simple-microservice:
+  restapi-auth-opa-integration-microservice:
     profiles: ["app"]
-    hostname: simple-opa-integration
-    container_name: simple-opa-integration
-    image: simple-opa-integration:latest
+    hostname: restapi-auth-opa-integration
+    container_name: restapi-auth-opa-integration
+    image: restapi-auth-opa-integration-microservice:latest
     environment:
       - AUTHZ_SERVER_HOST=authz-service
       - AUTHZ_SERVER_PORT=8181

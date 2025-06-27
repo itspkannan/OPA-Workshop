@@ -31,15 +31,15 @@ Available commands:
   build.docker          Build application docker image
   build.python          Build python source
   build.rego            Build policies into a gzipped file
-  clean                 Cleanup all generated files
-  cleanup.python        Cleanup the development environment temporary files
-  cleanup.rego          Cleanup policies build folder
+  clean                 clean all generated files
+  clean.python        clean the development environment temporary files
+  clean.rego          clean policies build folder
   deploy.rego           Deploy the policy to S3 bucket
   deploy.rego.validate  Validate rego policy deployment to S3
   docker.image.describe View Application docker image view
   format.python         Format code using Ruff (Black-compatible)
   help                  Help message
-  infra.cleanup         Cleanup the infrastructure
+  infra.clean         clean the infrastructure
   init.infra            Create the infrastructure
   init.python           Initialize the Poetry development environment
   lint                  Run static analysis on Python, Rego and Dockerfile

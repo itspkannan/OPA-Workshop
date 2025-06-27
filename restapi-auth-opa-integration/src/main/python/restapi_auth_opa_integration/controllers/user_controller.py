@@ -2,8 +2,8 @@ import uuid
 
 from sanic import Request, HTTPResponse, json
 
-from simple_opa_integration.container import Container
-from simple_opa_integration.services.user_service import UserService
+from restapi_auth_opa_integration.container import Container
+from restapi_auth_opa_integration.services.user_service import UserService
 from uuid import UUID
 
 class UserController:

@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-PROJECT_DESCRIPTION = "Simple OPA Integration"
+PROJECT_DESCRIPTION = "RestAPI Auth OPA Integration"
 PROJECT_NAME = "Second-microservice"
 VENV = .venv
 POETRY = poetry
@@ -10,7 +10,7 @@ PIP_CONF_USER := $(addsuffix /.config/pip/pip.conf,$(HOME))
 PIP_CONF_USER_OLD := $(addsuffix /.pip/pip.conf,$(HOME))
 PIP_CONF_GLOBAL := $(addsuffix /Library/Application Support/pip/pip.conf,$(HOME))
 DOCKERFILE ?= dockerfile
-IMAGE_NAME ?= "simple-opa-integration:latest"
+IMAGE_NAME ?= "restapi-auth-opa-integration-microservice:latest"
 AUTHZ_PROFILE ?= authz-v1
 OPA_IMAGE ?= openpolicyagent/opa:latest
 POLICY_BUNDLE_DIST ?=bundle.tar.gz
@@ -48,8 +48,8 @@ init.python: ## Initialize the Poetry development environment
 		$(POETRY) install --no-root
 	@echo "[Info] $(PROJECT_DESCRIPTION) Initialization of development Environment - Completed"
 
-.PHONY: cleanup.python
-cleanup.python: ## Cleanup the development environment temporary files
+.PHONY: clean.python
+clean.python: ## Cleanup the development environment temporary files
 	@find . \( \
 		-name "__pycache__" -o \
 		-name "*.pyc" -o \
@@ -95,12 +95,12 @@ test.rego: ## Test the policy against a valid input using JWT token
 	@docker run --network app --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
 		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_policy.py"
 
-.PHONY: cleanup.rego
-cleanup.rego:  ## Cleanup policies build folder
+.PHONY: clean.rego
+clean.rego:  ## Cleanup policies build folder
 	@rm -rf $(PWD)/deployment/authz/dist || true
 
 .PHONY: build.rego
-build.rego: cleanup.rego ## Build policies into a gzipped file
+build.rego: clean.rego ## Build policies into a gzipped file
 	@mkdir -p $(PWD)/deployment/authz/dist
 	@docker run --rm -v $(PWD)/deployment/authz:/authz -w /authz $(OPA_IMAGE) build -o dist/$(POLICY_BUNDLE_DIST) policies/
 
@@ -223,8 +223,13 @@ start: start.authz start.app  ## Start Authorization Services and Application
 .PHONY: stop
 stop: stop.authz stop.app  ## Stop Authorization Services and Application
 
+.PHONY: clean.docker
+clean.docker: ## Remove docker related files created for project, any network, images, volume
+	@echo "[INFO] Removing docker images built for the project"
+	@docker rmi $(IMAGE_NAME) 
+
 .PHONY: clean
-clean: cleanup.python cleanup.rego ## Cleanup all generated files
+clean: clean.python clean.rego clean.docker ## Cleanup all generated files
 
 .PHONY: bootstrap
 bootstrap: init.infra init.python build ## Bootstrap environment

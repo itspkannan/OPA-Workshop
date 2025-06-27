@@ -1,5 +1,5 @@
 from sanic import Blueprint, Sanic
-from simple_opa_integration.controllers.user_controller import UserController
+from restapi_auth_opa_integration.controllers.user_controller import UserController
 from uuid import UUID
 
 

@@ -1,10 +1,10 @@
 import pytest
 from sanic import Sanic
-from simple_opa_integration.container import Container
-from simple_opa_integration.services.authorization_service import AuthorizationService
-from simple_opa_integration.services.user_service import UserService
-from simple_opa_integration.services.configuration_service import ConfigurationService
-from simple_opa_integration.routes.routes import register_routes
+from restapi_auth_opa_integration.container import Container
+from restapi_auth_opa_integration.services.authorization_service import AuthorizationService
+from restapi_auth_opa_integration.services.user_service import UserService
+from restapi_auth_opa_integration.services.configuration_service import ConfigurationService
+from restapi_auth_opa_integration.routes.routes import register_routes
 
 
 @pytest.fixture(autouse=True)

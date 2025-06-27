@@ -38,14 +38,14 @@ WORKDIR /app
 COPY --from=app-builder /app/.venv /app/.venv/
 
 COPY main.py /app
-COPY src/main/python/simple_opa_integration /app/simple_opa_integration
+COPY src/main/python/restapi_auth_opa_integration /app/restapi_auth_opa_integration
 COPY deployment/app/config /app/config
 
-RUN groupadd -r opa-simple --gid=10000 && \
-    useradd --no-create-home -s /bin/false -r -g opa-simple --uid=999 opa-simple && \
-    id -u opa-simple | xargs -I{} chown -R {}:{} /app
+RUN groupadd -r restapi_opa --gid=10000 && \
+    useradd --no-create-home -s /bin/false -r -g restapi_opa --uid=999 restapi_opa && \
+    id -u restapi_opa | xargs -I{} chown -R {}:{} /app
 
-USER opa-simple
+USER restapi_opa
 
 ENV LANG=en_US.utf8 \
     PATH=/app/.venv/bin:/app:${PYTHONPATH}:${PATH}

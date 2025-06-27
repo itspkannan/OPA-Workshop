@@ -1,6 +1,6 @@
 import aiohttp
 
-from simple_opa_integration.config.auth_config import AuthConfig
+from restapi_auth_opa_integration.config.auth_config import AuthConfig
 
 
 class AuthorizationService:
