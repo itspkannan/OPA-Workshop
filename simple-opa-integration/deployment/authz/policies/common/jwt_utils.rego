@@ -1,7 +1,10 @@
 package common.utils.jwt
-# Need to be modified for Prod usage, this is a POC
-# Base64url("mysecret") = "bXlzZWNyZXQ"
 
-decode_token(token) = payload if{
-    [_, payload, _] := io.jwt.decode(token)
+decode_token(token) = payload if {
+    result := io.jwt.decode_verify(token,{
+           "secret": "secret123",
+			"iss": "pki.example.com"
+        })
+    [valid, _, payload] := result
+    valid
 }

@@ -23,12 +23,21 @@ endif
 
 help:  ## Help message
 	@echo ""
-	@echo "\033[1;33mAvailable commands:\033[0m"
-	@grep -E '^[a-zA-Z_-]+:.*?## ' Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@echo "\033[1;33mAvailable commands:\033[0m" && \
+	awk -F ':.*?## ' '/^[a-zA-Z0-9_.-]+:.*## / { \
+		cmds[$$1] = $$2; \
+		if (length($$1) > max_len) max_len = length($$1); \
+	} \
+	END { \
+		for (cmd in cmds) { \
+			printf "  \033[36m%-" max_len "s\033[0m %s\n", cmd, cmds[cmd]; \
+		} \
+	}' $(MAKEFILE_LIST) | sort
 	@echo ""
 
-.PHONY: init
-init: ## Initialize the Poetry development environment
+
+.PHONY: init.python
+init.python: ## Initialize the Poetry development environment
 	@echo "[Info] $(PROJECT_DESCRIPTION) Initialization of development Environment - Started"
 	$(eval PYTHON_VERSION=$(shell pyenv versions --bare --skip-aliases --skip-envs | grep 3.12 | sort | tail -1))
 	@echo "Python Version : $(PYTHON_VERSION)"
@@ -39,8 +48,8 @@ init: ## Initialize the Poetry development environment
 		$(POETRY) install --no-root
 	@echo "[Info] $(PROJECT_DESCRIPTION) Initialization of development Environment - Completed"
 
-.PHONY: cleanup
-cleanup: ## Cleanup the developmenet environment temporary files
+.PHONY: cleanup.python
+cleanup.python: ## Cleanup the development environment temporary files
 	@find . \( \
 		-name "__pycache__" -o \
 		-name "*.pyc" -o \
@@ -55,113 +64,117 @@ cleanup: ## Cleanup the developmenet environment temporary files
 	\) -exec rm -rf {} +
 	@rm -rf build/ .tox
 
-.PHONY: format
-format:  ## Format code using Ruff (Black-compatible)
+.PHONY: format.python
+format.python:  ## Format code using Ruff (Black-compatible)
 	@poetry run ruff format .
 
-.PHONY: lint
-lint:  dockerfile_lint ## Run static analysis with Ruff and Mypy
+.PHONY: lint.python
+lint.python:   ## Run static analysis with Ruff and Mypy
 	@poetry run ruff check .
 	@poetry run mypy basic_opa_integration
 
-.PHONY: test
-test:  ## Run tests with Pytest and show coverage
+.PHONY: python.test
+test.python:  ## Run tests with Pytest and show coverage
 	@poetry run pytest
 
-.PHONY: policy_check
-policy_check: ## Run OPA check on Policies
+.PHONY: policy.check
+policy.check: ## Run OPA check on Policies
 	@docker run --rm -v $(PWD)/deployment/authz:/authz $(OPA_IMAGE) check /authz/policies
 
-.PHONY: policy_eval
-policy_eval: ## Evaluate the Rego Policies
+.PHONY: policy.eval
+policy.eval: ## Evaluate the Rego Policies
 	@docker run --rm -v $(PWD)/deployment/authz:/authz $(OPA_IMAGE) eval -d /authz/policies  'data.simple.authz'
 
-.PHONY: policy_test
-policy_test: ## Test the policy against a valid input using JWT token
+.PHONY: test.rego.integration
+test.rego.integration: ## Test the policy against a valid input using JWT token
 	@docker run --network app --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
 		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_policy.py"
 
-.PHONY: policy_build
-policy_build:  ## Build policies into a gzipped file
-	@rm -rf $(PWD)/deployment/authz/dist
+.PHONY: test.rego
+test.rego: ## Test the policy against a valid input using JWT token
+	@docker run --network app --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
+		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_policy.py"
+
+.PHONY: cleanup.rego
+cleanup.rego:  ## Cleanup policies build folder
+	@rm -rf $(PWD)/deployment/authz/dist || true
+
+.PHONY: build.rego
+build.rego: cleanup.rego ## Build policies into a gzipped file
 	@mkdir -p $(PWD)/deployment/authz/dist
 	@docker run --rm -v $(PWD)/deployment/authz:/authz -w /authz $(OPA_IMAGE) build -o dist/$(POLICY_BUNDLE_DIST) policies/
 
-.PHONY: infra_init
-infra_init: ## Create the infrastructure
+build.python: ## Build python source
+	@poetry build
+
+.PHONY: init.infra
+init.infra: ## Create the infrastructure
 	@docker network create app || true
 
-.PHONY: infra_cleanup
-infra_cleanup: ## Cleanup the infrastructure
+.PHONY: infra.cleanup
+infra.cleanup: ## Cleanup the infrastructure
 	@docker network remove app
 
-.PHONY: authz_start
-authz_start: ## Start Authorization Service (Open Policy Agent)
+.PHONY: start.authz
+start.authz: ## Start Authorization Service (Open Policy Agent)
 	docker compose --profile $(AUTHZ_PROFILE) up -d
 
-.PHONY: authz_stop
-authz_stop: ## Stop Authorization Service (Open Policy Agent)
+.PHONY: stop.authz
+stop.authz: ## Stop Authorization Service (Open Policy Agent)
 	@docker compose --profile $(AUTHZ_PROFILE) down
 
-.PHONY: authz_logs
-authz_logs: ## View logs of Authorization Service (Open Policy Agent)
+.PHONY: logs.authz
+logs.authz: ## View logs of Authorization Service (Open Policy Agent)
 	@docker compose --profile $(AUTHZ_PROFILE) logs
 
-.PHONY: app_start
-app_start: ## Start App
+.PHONY: start.app
+start.app: ## Start App
 	@docker compose --profile app up -d
 
-.PHONY: app_stop
-app_stop: ## Stop App
+.PHONY: stop.app
+stop.app: ## Stop App
 	@docker compose --profile app down
 
-.PHONY: app_logs
-app_logs: ## View application logs
+.PHONY: logs.app
+logs.app: ## View application logs
 	@docker compose --profile app logs
 
-.PHONY: start
-start: authz_start app_start  ## Start Authorization Services and Application
-
-.PHONY: stop
-stop: authz_stop app_stop  ## Start Authorization Services and Application
-
-
-.PHONY: dockerfile-lint
-dockerfile_lint: ## Run lint for dockerfile
+.PHONY: lint.dockerfile
+lint.dockerfile: ## Run lint for dockerfile
 	@docker run --rm -i hadolint/hadolint < $(DOCKERFILE)
 
-docker_build: ## Build application docker image
+build.docker: ## Build application docker image
 	@docker build -f dockerfile -t $(IMAGE_NAME)  .
 
-.PHONY: docker_image_view
-docker_image_view: ## View Application docker image view
+.PHONY: docker.image.describe
+docker.image.describe: ## View Application docker image view
 	@dive $(IMAGE_NAME)
 
-.PHONY: runtime_view
-runtime_view:  ## view the active docker container
+.PHONY: runtime.view
+runtime.view:  ## view the active docker container
 	@docker container ls
 
-.PHONY: generate_token
-generate_token:  ## Generate a mock JWT token using Docker CLI
+.PHONY: token.generate
+token.generate:  ## Generate a mock JWT token 
 	@docker run --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
 	    sh -c "pip install --no-cache-dir pyjwt && python3 generate_token.py"
 
-.PHONY: localstack_start
-localstack_start:  ## Start localstack service for S3
+.PHONY: start.localstack
+start.localstack:  ## Start localstack service for S3
 	@echo ""
 	@echo "[INFO] Starting localstack Service "
 	@echo ""
 	@docker compose --profile authz-v3 up -d aws-mock-service
 
-.PHONY: localstack_stop
-localstack_stop:  ## Stop localstack service
+.PHONY: stop.localstack
+stop.localstack:  ## Stop localstack service
 	@echo ""
 	@echo "[INFO] Stopping localstack Service "
 	@echo ""
 	@docker compose --profile authz-v3 down aws-mock-service
 
-.PHONY: s3_deploy
-s3_deploy:  ## Deploy the policy to S3 bucket
+.PHONY: deploy.rego
+deploy.rego:  ## Deploy the policy to S3 bucket
 	@echo ""
 	@echo "[INFO] Deploying $(POLICY_BUNDLE_DIST) to S3 Bucket "
 	@echo ""
@@ -182,7 +195,8 @@ s3_deploy:  ## Deploy the policy to S3 bucket
 	  --endpoint-url http://aws-mock-service:4566 \
 	  --content-type application/gzip
 
-s3_deploy_check:
+.PHONY: deploy.rego.validate
+deploy.rego.validate: ## Validate rego policy deployment to S3
 	@echo ""
 	@echo "[INFO] Validate deployment of $(POLICY_BUNDLE_DIST) to S3 Bucket "
 	@echo ""
@@ -190,3 +204,27 @@ s3_deploy_check:
 	-e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test \
 	-e AWS_REGION=us-west-1 -e AWS_DEFAULT_REGION=us-west-1 \
 	amazon/aws-cli s3 ls s3://simple-app/authz/$(POLICY_BUNDLE_DIST) --endpoint-url http://host.docker.internal:4566
+
+
+.PHONY: build
+build: build.python build.rego build.docker ## Build Python and Rego policies
+
+.PHONY: test
+test: test.python test.rego ## Run tests for Rego and Python src code
+
+.PHONY: lint
+lint: lint.python  lint.dockerfile ## Run static analysis on Python, Rego and Dockerfile
+	@poetry run ruff check .
+	@poetry run mypy basic_opa_integration
+
+.PHONY: start
+start: start.authz start.app  ## Start Authorization Services and Application
+
+.PHONY: stop
+stop: stop.authz stop.app  ## Stop Authorization Services and Application
+
+.PHONY: clean
+clean: cleanup.python cleanup.rego ## Cleanup all generated files
+
+.PHONY: bootstrap
+bootstrap: init.infra init.python build ## Bootstrap environment

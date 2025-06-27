@@ -26,33 +26,43 @@ The poc include following approaches of loading `Policies`
 ❯ make help
 
 Available commands:
-  app_logs        View application logs
-  app_start       Start App
-  app_stop        Stop App
-  authz_logs      View logs of Authorization Service (Open Policy Agent)
-  authz_start     Start Authorization Service (Open Policy Agent)
-  authz_stop      Stop Authorization Service (Open Policy Agent)
-  cleanup         Cleanup the developmenet environment temporary files
-  docker_build    Build application docker image
-  docker_image_view View Application docker image view
-  dockerfile_lint Run lint for dockerfile
-  format          Format code using Ruff (Black-compatible)
-  generate_token  Generate a mock JWT token using Docker CLI
-  help            Help message
-  infra_cleanup   Cleanup the infrastructure
-  infra_init      Create the infrastructure
-  init            Initialize the Poetry development environment
-  lint            Run static analysis with Ruff and Mypy
-  localstack_start Start localstack service for S3
-  localstack_stop Stop localstack service
-  policy_build    Build policies into a gzipped file
-  policy_check    Run OPA check on Policies
-  policy_eval     Evaluate the Rego Policies
-  policy_test     Test the policy against a valid input using JWT token
-  runtime_view    view the active docker container
-  start           Start Authorization Services and Application
-  stop            Start Authorization Services and Application
-  test            Run tests with Pytest and show coverage
+  bootstrap             Bootstrap environment
+  build                 Build Python and Rego policies
+  build.docker          Build application docker image
+  build.python          Build python source
+  build.rego            Build policies into a gzipped file
+  clean                 Cleanup all generated files
+  cleanup.python        Cleanup the development environment temporary files
+  cleanup.rego          Cleanup policies build folder
+  deploy.rego           Deploy the policy to S3 bucket
+  deploy.rego.validate  Validate rego policy deployment to S3
+  docker.image.describe View Application docker image view
+  format.python         Format code using Ruff (Black-compatible)
+  help                  Help message
+  infra.cleanup         Cleanup the infrastructure
+  init.infra            Create the infrastructure
+  init.python           Initialize the Poetry development environment
+  lint                  Run static analysis on Python, Rego and Dockerfile
+  lint.dockerfile       Run lint for dockerfile
+  lint.python           Run static analysis with Ruff and Mypy
+  logs.app              View application logs
+  logs.authz            View logs of Authorization Service (Open Policy Agent)
+  policy.check          Run OPA check on Policies
+  policy.eval           Evaluate the Rego Policies
+  runtime.view          view the active docker container
+  start                 Start Authorization Services and Application
+  start.app             Start App
+  start.authz           Start Authorization Service (Open Policy Agent)
+  start.localstack      Start localstack service for S3
+  stop                  Stop Authorization Services and Application
+  stop.app              Stop App
+  stop.authz            Stop Authorization Service (Open Policy Agent)
+  stop.localstack       Stop localstack service
+  test                  Run tests for Rego and Python src code
+  test.python           Run tests with Pytest and show coverage
+  test.rego             Test the policy against a valid input using JWT token
+  test.rego.integration Test the policy against a valid input using JWT token
+  token.generate        Generate a mock JWT token 
 ```
 
 ---
@@ -164,7 +174,7 @@ docker compose --profile authz-v2 up -d
  ✔ Container authz-service-v2  Running                                                                                                                                                                                                          0.0s
 [+] Running 1/0
  ✔ Container simple-opa-integration  Running                                                                                                                                                                                                    0.0s
-❯ make policy_test
+❯ make test.rego
 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
 
 [notice] A new release of pip is available: 25.0.1 -> 25.1.1
@@ -194,10 +204,9 @@ In the POC setup, LocalStack is used to mock AWS services like S3 for local test
 🚀 Start Command
 To build policies, deploy to S3, and start the services:
 
-AUTHZ_PROFILE=authz-v3 make policy_build start s3_deploy policy_test
+```bash
 
-```
-❯ AUTHZ_PROFILE=authz-v3 make stop policy_build start s3_deploy policy_test
+❯ AUTHZ_PROFILE=authz-v3 make stop build.rego start deploy.rego test.rego.integration
 [+] Running 2/2
  ✔ Container authz-service-s3  Removed                                                                                                                                                                                                          0.1s
  ✔ Container aws-mock-service  Removed                                                                                                                                                                                                          3.8s
@@ -232,6 +241,7 @@ WARNING: Running pip as the 'root' user can result in broken permissions and con
 📥 OPA Response:
 {"decision_id":"46275026-1757-4adc-8338-312108cf1239","result":{"allow":true}}
 ```
+
 ### 🔁 Switching Between Modes
 
 Use the `AUTHZ_PROFILE` Makefile variable to switch between the two modes:
@@ -242,6 +252,9 @@ make AUTHZ_PROFILE=authz-v1 start
 
 # Remote bundle via server
 make AUTHZ_PROFILE=authz-v2 start
+
+# AWS S3 bucket simulation via LocalStack
+make AUTHZ_PROFILE=authz-v3 start
 ```
 
 
@@ -275,6 +288,7 @@ Figure 2 illustrates a API call to OPA using Postman
 ### 📚 References
 
 * **[Open Policy Agent (OPA)](https://www.openpolicyagent.org/):** General-purpose policy engine used for authorization.
+* **[Rego JWT Build in Function](https://docs.styra.com/opa/rego-by-example/builtins/io_jwt):** Rego's JWT Built-in Functions
 * **[Rego](https://www.openpolicyagent.org/docs/latest/policy-language/):** Declarative language for defining policies in OPA.
 * **[Sanic](https://sanic.dev/):** Python web framework used to build async APIs.
 * **[Docker](https://www.docker.com/):** Used for containerizing and running the OPA server and services.
