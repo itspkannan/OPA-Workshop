@@ -16,6 +16,9 @@ dependencies = [
     "sanic (==24.12.0)",
 ]
 
+[[tool.poetry.packages]]
+include = "simple_opa_integration"
+from = "src/main/python"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -40,7 +43,7 @@ report = "^0.0.1"
 line-length = 100
 target-version = "py311"
 fix = true
-src = ["basic_opa_integration"]
+src = ["simple_opa_integration"]
 
 [tool.ruff.format]
 quote-style = "preserve"
@@ -50,11 +53,12 @@ line-ending = "auto"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = ["D203", "D212", "COM812"]
-exclude = ["tests/*"]
+exclude = ["src/test/*"]
 
 [tool.mypy]
 strict = true
 
 [tool.pytest.ini_options]
-addopts = "--cov=simple_opa_integration --cov-report=term-missing"
-testpaths = ["tests"]
+addopts = "-ra -q --cov=simple_opa_integration --cov-report=term-missing"
+testpaths = ["src/test/python"]
+pythonpath = ["src/main/python"]

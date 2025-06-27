@@ -38,7 +38,7 @@ WORKDIR /app
 COPY --from=app-builder /app/.venv /app/.venv/
 
 COPY main.py /app
-COPY simple_opa_integration /app/simple_opa_integration
+COPY src/main/python/simple_opa_integration /app/simple_opa_integration
 COPY deployment/app/config /app/config
 
 RUN groupadd -r opa-simple --gid=10000 && \
