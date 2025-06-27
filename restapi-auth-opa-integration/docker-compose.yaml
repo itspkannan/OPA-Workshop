@@ -27,7 +27,7 @@ services:
     working_dir: /bundle
     command: python3 -m http.server 8888
     volumes:
-      - $PWD/deployment/authz/dist:/bundle
+      - $PWD/dist/authz:/bundle
     ports:
       - "127.0.0.1:8888:8888"
     networks:
