@@ -1,0 +1,48 @@
+[project]
+name = "oauth2-opa-integration"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Priyesh Kannan",email = "10197527+PriyeshKannan@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.12.0"
+mypy = "^1.16.1"
+pytest = "^8.4.1"
+coverage = "^7.9.1"
+pre-commit = "^4.2.0"
+pytest-cov = "^6.2.1"
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+fix = true
+src = ["oauth2_opa_integration"]
+
+[tool.ruff.format]
+quote-style = "preserve"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D203", "D212", "COM812"]
+exclude = ["tests/*"]
+
+[tool.mypy]
+strict = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=oauth2_opa_integration --cov-report=term-missing"
+testpaths = ["tests"]
