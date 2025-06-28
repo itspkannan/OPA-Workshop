@@ -59,6 +59,6 @@ exclude = ["src/test/*"]
 strict = true
 
 [tool.pytest.ini_options]
-addopts = "-ra -q --cov=simple_opa_integration --cov-report=term-missing"
+addopts = "-ra -q --cov=restapi_auth_opa_integration --cov-report=term-missing"
 testpaths = ["src/test/python"]
 pythonpath = ["src/main/python"]

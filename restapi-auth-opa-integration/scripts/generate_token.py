@@ -11,7 +11,7 @@ def generate_jwt(secret: str, role: str, name: str):
         "sub": "1234567890",
         "name": name,
         "role": role,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
+        "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1),
     }
 
     headers = {
@@ -25,5 +25,5 @@ SECRET = "secret123"
 secret_encoded_base64url = base64url_encode(SECRET)
 print("Base64url Encoded Secret (for OPA):", secret_encoded_base64url)
 
-token = generate_jwt(secret_encoded_base64url, 'admin', 'Jane Doe')
+token = generate_jwt(SECRET, 'admin', 'Jane Doe')
 print("🔐 Generated JWT:\n", token)

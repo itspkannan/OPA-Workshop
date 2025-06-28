@@ -13,6 +13,9 @@ services:
       - debug
       - --set=decision_logs.console=true
       - /policies
+    environment:
+      - JWT_ISSUER=pki.example.com
+      - JWT_TOKEN_SIGN_SECRET=secret123
     volumes:
       - $PWD/src/main/rego:/policies
     ports:
@@ -47,6 +50,9 @@ services:
       - debug
       - --config-file
       - /authz/config/authz_config.yaml
+    environment:
+      - JWT_ISSUER=pki.example.com
+      - JWT_TOKEN_SIGN_SECRET=secret123
     volumes:
       - $PWD/deployment/authz/config:/authz/config
     depends_on:
@@ -88,6 +94,9 @@ services:
       - debug
       - --config-file
       - /authz/config/authz_config.yaml
+    environment:
+      - JWT_ISSUER=pki.example.com
+      - JWT_TOKEN_SIGN_SECRET=secret123
     volumes:
       - $PWD/deployment/authz/s3:/authz/config
     depends_on:

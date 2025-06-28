@@ -75,7 +75,9 @@ lint.python:   ## Run static analysis with Ruff and Mypy
 
 .PHONY: python.test
 test.python:  ## Run tests with Pytest and show coverage
+	@echo "[INFO] Started unit test of python code"
 	@poetry run pytest
+	@echo "[INFO] Completed unit test of python code"
 
 .PHONY: policy.check
 policy.check: ## Run OPA check on Policies
@@ -87,13 +89,18 @@ policy.eval: ## Evaluate the Rego Policies
 
 .PHONY: test.rego.integration
 test.rego.integration: ## Test the policy against a valid input using JWT token
+	@echo "[INFO] Started integration test of Rego Policies"
 	@docker run --network app --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
 		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_policy.py"
+	@echo "[INFO] Completed integration test of Rego Policies"
 
 .PHONY: test.rego
-test.rego: ## Test the policy against a valid input using JWT token
-	@docker run --network app --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
-		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_policy.py"
+test.rego: ## Unit test of rego policies with mocking of data
+	@echo "[INFO] Started unit test of Rego Policies"
+	@docker run --rm  -v "$(PWD)/src/main/rego:/policies" -e JWT_ISSUER=pki.example.com \
+      -e JWT_TOKEN_SIGN_SECRET=secret123 \
+	 -v "$(PWD)/src/test/rego:/test-policies" $(OPA_IMAGE) test -v /policies /test-policies
+	@echo "[INFO] Completed unit test of Rego Policies"
 
 .PHONY: clean.rego
 clean.rego:  ## Cleanup policies build folder
