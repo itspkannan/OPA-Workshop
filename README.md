@@ -26,8 +26,6 @@ TODO
 
 ## Project 3: RestAPI Auhtorization using OPA - Kubernetes Deployment
 
-TODO
-
 **Goal**: Extend project 1 to demontrate a OPA Sidecar deployment in Kubernetes using K3d.
 
 - Create K3d cluster.

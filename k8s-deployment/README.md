@@ -306,11 +306,36 @@ NOTES:
   kubectl --namespace restapi-opa port-forward $POD_NAME 8080:$CONTAINER_PORT
 ```
 
+```bash
+
+❯ helm list -n restapi-opa
+NAME       	NAMESPACE  	REVISION	UPDATED                             	STATUS  	CHART            	APP VERSION
+restapi-opa	restapi-opa	1       	2025-06-28 09:02:53.614026 -0700 PDT	deployed	restapi-opa-0.1.0	0.1.0
+```
+
+```bash
+❯ helm status restapi-opa -n restapi-opa
+
+NAME: restapi-opa
+LAST DEPLOYED: Sat Jun 28 09:02:53 2025
+NAMESPACE: restapi-opa
+STATUS: deployed
+REVISION: 1
+NOTES:
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace restapi-opa -l "app.kubernetes.io/name=restapi-opa,app.kubernetes.io/instance=restapi-opa" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace restapi-opa $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace restapi-opa port-forward $POD_NAME 8080:$CONTAINER_PORT
+
+```
+
+
 7. **Display deployed resources**
 
 ```bash
 ❯ make deploy.view
-kubectl get configmap,pods,svc,deployment,replicaset,hpa -n restapi-opa
+kubectl get configmap,pods,svc,deployment,replicaset -n restapi-opa
 NAME                          DATA   AGE
 configmap/kube-root-ca.crt    1      43s
 configmap/opa-policy-config   1      43s

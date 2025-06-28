@@ -6,6 +6,10 @@ DEFAULT_REG=localhost:5000
 
 IMAGE_NAME=$(DEFAULT_REG)/$(MICROSERVICE_IMAGE_NAME)
 DOCKER_NETWORK := k3d-$(CLUSTER_NAME)
+APP_NAMESPACE ?= restapi-opa
+APP_LABEL_KEY ?= app.kubernetes.io/name
+APP_LABEL_VALUE ?= restapi-opa
+
 
 .DEFAULT_GOAL := help
 
@@ -64,8 +68,8 @@ build: ## Build Python and Rego policies
 	cd $(SOURCE_DIR) && make  build
 
 build.push: build ## Build, push nginx image
-	docker tag $(MICROSERVICE_IMAGE_NAME):latest $(IMAGE_NAME):0.1.0
-	docker push $(IMAGE_NAME)
+	docker tag "$(MICROSERVICE_IMAGE_NAME):latest" "$(IMAGE_NAME):0.1.0"
+	docker push "$(IMAGE_NAME):0.1.0"
 
 .PHONY: start.localstack
 start.localstack:  ## Start localstack service for S3
@@ -80,10 +84,10 @@ deploy.rego:  ## Deploy the policy to S3 bucket
 	cd $(SOURCE_DIR) ; DOCKER_NETWORK=$(DOCKER_NETWORK) make  deploy.rego deploy.rego.validate
 
 deploy.microservice: ## Deploy microservice 
-	helm install restapi-opa restapi-opa --namespace restapi-opa --create-namespace
+	helm install restapi-opa restapi-opa --namespace $(APP_NAMESPACE) --create-namespace
 
 undeploy.microservice: ## Uninstall microservice 
-	helm uninstall restapi-opa --namespace restapi-opa || true
+	helm uninstall restapi-opa --namespace $(APP_NAMESPACE) || true
 	kubectl delete namespace restapi-opa --ignore-not-found
 
 test.deployment: ## Test if application is deployed
@@ -96,6 +100,28 @@ test: test.deployment test.rego.integration ## Perform test of the deployment
 
 
 deploy.view: ## View  pods, svc, deployment
-	kubectl get configmap,pods,svc,deployment,replicaset,hpa -n restapi-opa
+	kubectl get configmap,pods,svc,deployment,replicaset,hpa  --namespace $(APP_NAMESPACE)
 	
 delete.cluster: undeploy.microservice stop.registry delete.cluster delete.network ## Cleanup resource created during the session.
+
+cluster.events: ## View cluster event for the app namespace
+	kubectl get events --namespace $(APP_NAMESPACE) --sort-by=.metadata.creationTimestamp
+
+
+pod.describe: ## Describe pod to view more details 
+	$(eval POD_NAME := $(shell kubectl get pods -n $(APP_NAMESPACE) -l $(APP_LABEL_KEY)=$(APP_LABEL_VALUE) -o jsonpath="{.items[0].metadata.name}" 2>/dev/null || echo ""))
+	@if [ -z "$(POD_NAME)" ]; then \
+		echo "❌ No pod found with label $(APP_LABEL_KEY)=$(APP_LABEL_VALUE) in namespace $(APP_NAMESPACE)"; \
+		exit 1; \
+	fi
+	@echo "✅ Describing pod: $(POD_NAME)"
+	@kubectl describe pod -n $(APP_NAMESPACE) $(POD_NAME)
+
+pod.logs: ## Fetch logs from the pod
+	$(eval POD_NAME := $(shell kubectl get pods -n $(APP_NAMESPACE) -l $(APP_LABEL_KEY)=$(APP_LABEL_VALUE) -o jsonpath="{.items[0].metadata.name}" 2>/dev/null || echo ""))
+	@if [ -z "$(POD_NAME)" ]; then \
+		echo "❌ No pod found with label $(APP_LABEL_KEY)=$(APP_LABEL_VALUE) in namespace $(APP_NAMESPACE)"; \
+		exit 1; \
+	fi
+	@echo "📜 Logs for pod: $(POD_NAME)"
+	@kubectl logs -n $(APP_NAMESPACE) $(POD_NAME) --all-containers=true

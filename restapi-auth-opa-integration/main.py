@@ -1,4 +1,4 @@
-from simple_opa_integration.app import startup
+from restapi_auth_opa_integration.app import startup
 import asyncio
 import uvloop
 from environs import Env
