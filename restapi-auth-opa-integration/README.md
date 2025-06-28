@@ -1,4 +1,4 @@
-# Simple OPA Integration Project
+# Rest API Authorization using OPA
 
 This Python project is a **proof of concept** demonstrating the integration of [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) for **authorization of a REST API**. 
 
