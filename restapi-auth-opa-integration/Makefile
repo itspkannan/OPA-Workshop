@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 PROJECT_DESCRIPTION = "RestAPI Auth OPA Integration"
-PROJECT_NAME = "Second-microservice"
+PROJECT_NAME = "restapi-auth-opa-integration"
 VENV = .venv
 POETRY = poetry
 PIP = pip
@@ -10,7 +10,7 @@ PIP_CONF_USER := $(addsuffix /.config/pip/pip.conf,$(HOME))
 PIP_CONF_USER_OLD := $(addsuffix /.pip/pip.conf,$(HOME))
 PIP_CONF_GLOBAL := $(addsuffix /Library/Application Support/pip/pip.conf,$(HOME))
 DOCKERFILE ?= dockerfile
-IMAGE_NAME ?= "restapi-auth-opa-integration-microservice:latest"
+IMAGE_NAME ?= restapi-auth-opa-integration-microservice
 AUTHZ_PROFILE ?= authz-v1
 OPA_IMAGE ?= openpolicyagent/opa:latest
 POLICY_BUNDLE_DIST ?=bundle.tar.gz
@@ -127,38 +127,38 @@ infra.cleanup: ## Cleanup the infrastructure
 
 .PHONY: start.authz
 start.authz: ## Start Authorization Service (Open Policy Agent)
-	docker compose --profile $(AUTHZ_PROFILE) up -d
+	@DOCKER_NETWORK=$(DOCKER_NETWORK) docker compose --profile $(AUTHZ_PROFILE) up -d
 
 .PHONY: stop.authz
 stop.authz: ## Stop Authorization Service (Open Policy Agent)
-	@docker compose --profile $(AUTHZ_PROFILE) down
+	@DOCKER_NETWORK=$(DOCKER_NETWORK) docker compose --profile $(AUTHZ_PROFILE) down
 
 .PHONY: logs.authz
 logs.authz: ## View logs of Authorization Service (Open Policy Agent)
-	@docker compose --profile $(AUTHZ_PROFILE) logs
+	@DOCKER_NETWORK=$(DOCKER_NETWORK) docker compose --profile $(AUTHZ_PROFILE) logs
 
 .PHONY: start.app
 start.app: ## Start App
-	@docker compose --profile app up -d
+	@DOCKER_NETWORK=$(DOCKER_NETWORK) docker compose --profile app up -d
 
 .PHONY: stop.app
 stop.app: ## Stop App
-	@docker compose --profile app down
+	@DOCKER_NETWORK=$(DOCKER_NETWORK) docker compose --profile app down
 
 .PHONY: logs.app
 logs.app: ## View application logs
-	@docker compose --profile app logs
+	@DOCKER_NETWORK=$(DOCKER_NETWORK) docker compose --profile app logs
 
 .PHONY: lint.dockerfile
 lint.dockerfile: ## Run lint for dockerfile
 	@docker run --rm -i hadolint/hadolint < $(DOCKERFILE)
 
 build.docker: ## Build application docker image
-	@docker build -f dockerfile -t $(IMAGE_NAME)  .
+	@docker build -f dockerfile -t "$(IMAGE_NAME):latest"  .
 
 .PHONY: docker.image.describe
 docker.image.describe: ## View Application docker image view
-	@dive $(IMAGE_NAME)
+	@dive $(IMAGE_NAME):latest
 
 .PHONY: runtime.view
 runtime.view:  ## view the active docker container

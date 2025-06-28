@@ -37,7 +37,7 @@ FROM python-base AS production
 WORKDIR /app
 COPY --from=app-builder /app/.venv /app/.venv/
 
-COPY main.py /app
+COPY src/main/python/main.py /app
 COPY src/main/python/restapi_auth_opa_integration /app/restapi_auth_opa_integration
 COPY deployment/app/config /app/config
 

@@ -3,14 +3,14 @@ import sqlite3
 from sanic import Sanic
 from sanic.worker.loader import AppLoader
 
-from rest_api_opa_integration.config.auth_config import AuthConfig
-from rest_api_opa_integration.config.server_config import ServerConfig
-from rest_api_opa_integration.container import Container
-from rest_api_opa_integration.middleware.authz_middleware import register_auth_middleware
-from rest_api_opa_integration.routes.routes import register_routes
-from rest_api_opa_integration.services.authorization_service import AuthorizationService
-from rest_api_opa_integration.services.configuration_service import ConfigurationService
-from rest_api_opa_integration.services.user_service import UserService
+from restapi_auth_opa_integration.config.auth_config import AuthConfig
+from restapi_auth_opa_integration.config.server_config import ServerConfig
+from restapi_auth_opa_integration.container import Container
+from restapi_auth_opa_integration.middleware.authz_middleware import register_auth_middleware
+from restapi_auth_opa_integration.routes.routes import register_routes
+from restapi_auth_opa_integration.services.authorization_service import AuthorizationService
+from restapi_auth_opa_integration.services.configuration_service import ConfigurationService
+from restapi_auth_opa_integration.services.user_service import UserService
 
 
 

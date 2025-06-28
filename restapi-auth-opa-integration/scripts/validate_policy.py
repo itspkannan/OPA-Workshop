@@ -44,3 +44,29 @@ print("📥 Authz Response:")
 print(response_body)
 print()
 conn.close()
+
+API_HOST = "restapi-auth-opa-integration"
+API_PORT = 8080
+try:
+    decision = json.loads(response_body)
+    if decision.get("result", {}).get("allow") is True:
+        print("✅ Sending request to your API service...")
+
+        api_conn = http.client.HTTPConnection(API_HOST, API_PORT)
+        api_headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        api_conn.request("GET", "/api/v1/users", headers=api_headers)
+
+        api_response = api_conn.getresponse()
+        api_body = api_response.read().decode()
+
+        print("📥 API Response:")
+        print(f"Status: {api_response.status}")
+        print(f"Body: {api_body}")
+        api_conn.close()
+    else:
+        print("❌ OPA denied access.")
+except Exception as e:
+    print("❗ Error processing OPA response:", str(e))
+    sys.exit(1)

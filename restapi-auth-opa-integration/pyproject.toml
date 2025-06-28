@@ -43,7 +43,7 @@ report = "^0.0.1"
 line-length = 100
 target-version = "py311"
 fix = true
-src = ["src/main/python/restapi_auth_opa_integration"]
+src = ["src/main/python"]
 
 [tool.ruff.format]
 quote-style = "preserve"
