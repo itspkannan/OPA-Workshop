@@ -1,0 +1,15 @@
+services:
+  registry:
+    image: registry:2
+    hostname: custom-registry
+    container_name: custom-registry
+    ports:
+      - "5000:5000"
+    restart: always
+    networks:
+      - k3dnet
+
+networks:
+  k3dnet:
+    external: true
+    name: ${DOCKER_NETWORK}

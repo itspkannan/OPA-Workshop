@@ -1,0 +1,23 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: custom-registry-cluster
+servers: 1
+agents: 2
+registries:
+  config: |
+    mirrors:
+      "localhost:5000":
+        endpoint:
+          - "http://custom-registry:5000"
+network: ${DOCKER_NETWORK}
+ports:
+  - port: 8080:80  
+    nodeFilters:
+      - loadbalancer
+options:
+  k3s:
+    extraArgs:
+      - arg: "--disable=traefik"
+        nodeFilters:
+          - server:*

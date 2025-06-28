@@ -14,6 +14,9 @@ IMAGE_NAME ?= "restapi-auth-opa-integration-microservice:latest"
 AUTHZ_PROFILE ?= authz-v1
 OPA_IMAGE ?= openpolicyagent/opa:latest
 POLICY_BUNDLE_DIST ?=bundle.tar.gz
+DOCKER_NETWORK ?= app
+
+
 ifeq ($(UNAME_S),Linux)
 	POETRY_AUTH_CONF := $(addsuffix /auth.toml,$(POETRY_HOME))
 endif
@@ -90,7 +93,7 @@ policy.eval: ## Evaluate the Rego Policies
 .PHONY: test.rego.integration
 test.rego.integration: ## Test the policy against a valid input using JWT token
 	@echo "[INFO] Started integration test of Rego Policies"
-	@docker run --network app --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
+	@docker run --network $(DOCKER_NETWORK) --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
 		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_policy.py"
 	@echo "[INFO] Completed integration test of Rego Policies"
 
@@ -186,15 +189,15 @@ deploy.rego:  ## Deploy the policy to S3 bucket
 	@echo "[INFO] Deploying $(POLICY_BUNDLE_DIST) to S3 Bucket "
 	@echo ""
 	@echo "🪣 Creating bucket ..."
-	@docker run --rm --network app \
+	@docker run --rm --network $(DOCKER_NETWORK) \
 	  -e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test \
 	  -e AWS_REGION=us-west-1 -e AWS_DEFAULT_REGION=us-west-1 \
 	  amazon/aws-cli \
 	  s3 mb s3://simple-app --endpoint-url http://aws-mock-service:4566 || true
 
 	@echo "📦 Uploading $(POLICY_BUNDLE_DIST) to s3://simple-app..."
-	@docker run --rm --network app \
-	  -v $(PWD)/deployment/authz/dist:/authz \
+	@docker run --rm --network $(DOCKER_NETWORK) \
+	  -v $(PWD)/dist/authz:/authz \
 	  -e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test \
 	  -e AWS_REGION=us-west-1 -e AWS_DEFAULT_REGION=us-west-1 \
 	  amazon/aws-cli \
@@ -207,7 +210,7 @@ deploy.rego.validate: ## Validate rego policy deployment to S3
 	@echo ""
 	@echo "[INFO] Validate deployment of $(POLICY_BUNDLE_DIST) to S3 Bucket "
 	@echo ""
-	@docker run --rm --network app \
+	@docker run --rm --network $(DOCKER_NETWORK) \
 	-e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test \
 	-e AWS_REGION=us-west-1 -e AWS_DEFAULT_REGION=us-west-1 \
 	amazon/aws-cli s3 ls s3://simple-app/authz/$(POLICY_BUNDLE_DIST) --endpoint-url http://host.docker.internal:4566

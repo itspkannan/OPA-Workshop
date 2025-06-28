@@ -1,0 +1,23 @@
+services:
+  - name: authz_policies
+    url: http://aws-mock-service:4566
+    credentials:
+      type: aws
+      aws:
+        region: us-west-1
+        access_key_id: test
+        secret_access_key: test
+
+bundles:
+  authz:
+    service: authz_policies
+    resource: /simple-app/authz/bundle.tar.gz
+    polling:
+      min_delay_seconds: 300
+      max_delay_seconds: 600
+
+decision_logs:
+  console: true
+  level: debug
+  formatting:
+    json: true

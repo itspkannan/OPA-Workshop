@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "restapi-opa.fullname" . }}-test-connection"
+  labels:
+    {{- include "restapi-opa.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "restapi-opa.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
