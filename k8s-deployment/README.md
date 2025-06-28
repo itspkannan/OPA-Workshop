@@ -34,15 +34,23 @@ Available commands:
   delete.network  Delete a K3d network
   deploy.microservice Deploy microservice
   deploy.rego     Deploy the policy to S3 bucket
+  deploy.view     View  pods, svc, deployment
   describe.cluster Describe the k3d cluster
+  events          Show recent warning events
   get.nodes       List Kubernetes nodes
   init.cluster    Initialize the cluster
+  pod.describe    Describe pod to view more details
+  pod.list        List all pods with labels
+  pod.logs        Fetch logs from the pod
+  release.status  Show Helm release status
   start.localstack Start localstack service for S3
   start.registry  Start Docker registry using Compose
   stop.registry   Stop Docker registry
+  svc.list        List all services in the namespace
   test            Perform test of the deployment
   test.deployment Test if application is deployed
   test.rego.integration Test an OPA auhtorized API endpoint
+  undeploy.microservice Uninstall microservice
 
 ```
 
@@ -158,34 +166,34 @@ docker network create k3d-microservice-opa-integration || true
 f05942aa88232626b88a66f387d1b166d87c30927b15ba9186b6e3a399c42ae6
 [INFO] Registry for docker images - Starting.
 [+] Running 1/1
- ✔ Container custom-registry  Started                                                                                                                                                                                                           0.1s
+ ✔ Container custom-registry  Started        0.1s
 [INFO]  Registry for docker images - Started .
 [INFO] K3d Cluster microservice-opa-integration - Creation started.
 INFO[0000] Using config file k3d-config.yaml (k3d.io/v1alpha5#simple)
 INFO[0000] portmapping '8080:80' targets the loadbalancer: defaulting to [servers:*:proxy agents:*:proxy]
 INFO[0000] Prep: Network
-INFO[0000] Created network 'k3d-custom-registry-cluster'
-INFO[0000] Created image volume k3d-custom-registry-cluster-images
+INFO[0000] Re-using existing network 'k3d-microservice-opa-integration' (86809379d07e58070642950e9552bf5fd3e7924f3b74e8e2aa04005f3c05d4b3)
+INFO[0000] Created image volume k3d-microservice-opa-integration-images
 INFO[0000] Starting new tools node...
-INFO[0000] Starting node 'k3d-custom-registry-cluster-tools'
-INFO[0001] Creating node 'k3d-custom-registry-cluster-server-0'
-INFO[0001] Creating node 'k3d-custom-registry-cluster-agent-0'
-INFO[0001] Creating node 'k3d-custom-registry-cluster-agent-1'
-INFO[0001] Creating LoadBalancer 'k3d-custom-registry-cluster-serverlb'
+INFO[0000] Starting node 'k3d-microservice-opa-integration-tools'
+INFO[0001] Creating node 'k3d-microservice-opa-integration-server-0'
+INFO[0001] Creating node 'k3d-microservice-opa-integration-agent-0'
+INFO[0001] Creating node 'k3d-microservice-opa-integration-agent-1'
+INFO[0001] Creating LoadBalancer 'k3d-microservice-opa-integration-serverlb'
 INFO[0001] Using the k3d-tools node to gather environment information
 INFO[0001] Starting new tools node...
-INFO[0001] Starting node 'k3d-custom-registry-cluster-tools'
-INFO[0002] Starting cluster 'custom-registry-cluster'
+INFO[0001] Starting node 'k3d-microservice-opa-integration-tools'
+INFO[0002] Starting cluster 'microservice-opa-integration'
 INFO[0002] Starting servers...
-INFO[0002] Starting node 'k3d-custom-registry-cluster-server-0'
+INFO[0002] Starting node 'k3d-microservice-opa-integration-server-0'
 INFO[0004] Starting agents...
-INFO[0004] Starting node 'k3d-custom-registry-cluster-agent-1'
-INFO[0004] Starting node 'k3d-custom-registry-cluster-agent-0'
-INFO[0016] Starting helpers...
-INFO[0016] Starting node 'k3d-custom-registry-cluster-serverlb'
-INFO[0022] Injecting records for hostAliases (incl. host.k3d.internal) and for 5 network members into CoreDNS configmap...
-INFO[0024] Cluster 'custom-registry-cluster' created successfully!
-INFO[0024] You can now use it like this:
+INFO[0004] Starting node 'k3d-microservice-opa-integration-agent-1'
+INFO[0004] Starting node 'k3d-microservice-opa-integration-agent-0'
+INFO[0014] Starting helpers...
+INFO[0014] Starting node 'k3d-microservice-opa-integration-serverlb'
+INFO[0020] Injecting records for hostAliases (incl. host.k3d.internal) and for 6 network members into CoreDNS configmap...
+INFO[0022] Cluster 'microservice-opa-integration' created successfully!
+INFO[0022] You can now use it like this:
 kubectl cluster-info
 [INFO] K3d Cluster microservice-opa-integration - Creation Completed.
 ```
@@ -335,23 +343,96 @@ NOTES:
 
 ```bash
 ❯ make deploy.view
-kubectl get configmap,pods,svc,deployment,replicaset -n restapi-opa
 NAME                          DATA   AGE
-configmap/kube-root-ca.crt    1      43s
-configmap/opa-policy-config   1      43s
+configmap/kube-root-ca.crt    1      13s
+configmap/opa-policy-config   1      13s
 
-NAME                               READY   STATUS         RESTARTS   AGE
-pod/restapi-opa-547b6f5b5c-77w4z   1/2     ErrImagePull   0          43s
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/restapi-opa-7576d4599-w6rf6   2/2     Running   0          13s
 
-NAME                  TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
-service/restapi-opa   ClusterIP   10.43.61.251   <none>        80/TCP    43s
+NAME                  TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+service/restapi-opa   ClusterIP   10.43.19.15   <none>        8080/TCP   13s
 
 NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/restapi-opa   0/1     1            0           43s
+deployment.apps/restapi-opa   1/1     1            1           13s
 
-NAME                                     DESIRED   CURRENT   READY   AGE
-replicaset.apps/restapi-opa-547b6f5b5c   1         1         0       43s
+NAME                                    DESIRED   CURRENT   READY   AGE
+replicaset.apps/restapi-opa-7576d4599   1         1         1       13s
 
+```
+
+8. **Analyze the logs**
+
+```bash
+❯ make pod.logs
+📜 Logs for pod: restapi-opa-7bb4bb54f6-v85cd
+Main  2025-06-28 20:03:10 +0000 INFO: Sanic v24.12.0
+Main  2025-06-28 20:03:10 +0000 INFO: Goin' Fast @ http://0.0.0.0:8080
+Main  2025-06-28 20:03:10 +0000 INFO: app: OPAWithSanic
+Main  2025-06-28 20:03:10 +0000 INFO: mode: production, w/ 2 workers
+Main  2025-06-28 20:03:10 +0000 INFO: server: sanic, HTTP/1.1
+Main  2025-06-28 20:03:10 +0000 INFO: python: 3.12.11
+Main  2025-06-28 20:03:10 +0000 INFO: platform: Linux-6.10.14-linuxkit-aarch64-with-glibc2.36
+Main  2025-06-28 20:03:10 +0000 INFO: packages: sanic-routing==23.12.0, sanic-ext==24.12.0
+Srv 1 2025-06-28 20:03:10 +0000 INFO: Starting worker [17]
+Srv 0 2025-06-28 20:03:10 +0000 INFO: Starting worker [16]
+{"addrs":["0.0.0.0:8181"],"diagnostic-addrs":[],"level":"info","msg":"Initializing server.","time":"2025-06-28T20:03:10Z"}
+{"level":"debug","msg":"Failed to determine uid/gid of process owner","time":"2025-06-28T20:03:10Z"}
+{"level":"debug","msg":"maxprocs: Leaving GOMAXPROCS=12: CPU quota undefined","time":"2025-06-28T20:03:10Z"}
+{"level":"info","msg":"Starting bundle loader.","name":"authz","plugin":"bundle","time":"2025-06-28T20:03:10Z"}
+{"level":"info","msg":"Starting decision logger.","plugin":"decision_logs","time":"2025-06-28T20:03:10Z"}
+{"level":"debug","msg":"Download starting.","time":"2025-06-28T20:03:10Z"}
+{"headers":{"Prefer":["modes=snapshot,delta"],"User-Agent":["Open Policy Agent/1.5.1 (linux, amd64)"]},"level":"debug","method":"GET","msg":"Sending request.","time":"2025-06-28T20:03:10Z","url":"http://aws-mock-service:4566/simple-app/authz/bundle.tar.gz"}
+{"level":"debug","msg":"Server initialized.","time":"2025-06-28T20:03:10Z"}
+{"headers":{"Content-Type":["application/json"],"User-Agent":["Open Policy Agent/1.5.1 (linux, amd64)"]},"level":"debug","method":"POST","msg":"Sending request.","time":"2025-06-28T20:03:10Z","url":"https://telemetry.openpolicyagent.org/v1/version"}
+{"headers":{"Accept-Ranges":["bytes"],"Content-Length":["693"],"Content-Type":["application/gzip"],"Date":["Sat, 28 Jun 2025 20:03:10 GMT"],"Etag":["\"1f800cc58fc5073f6b4b3aa5ce4459a3\""],"Last-Modified":["Sat, 28 Jun 2025 20:02:53 GMT"],"Server":["TwistedWeb/24.3.0"],"X-Amz-Id-2":["s9lzHYrFp76ZVxRcpX9+5cjAnEH2ROuNkd2BHfIa6UkFVdtjf5mKR3/eTPFvsiP/XV/VLi31234="],"X-Amz-Request-Id":["1477eab9-b099-4016-b036-c1fc36522371"],"X-Amz-Server-Side-Encryption":["AES256"]},"level":"debug","method":"GET","msg":"Received response.","status":"200 OK","time":"2025-06-28T20:03:10Z","url":"http://aws-mock-service:4566/simple-app/authz/bundle.tar.gz"}
+{"level":"debug","msg":"Download in progress.","time":"2025-06-28T20:03:10Z"}
+{"level":"debug","msg":"Bundle activation in progress (). Opening storage transaction.","name":"authz","plugin":"bundle","time":"2025-06-28T20:03:10Z"}
+{"level":"debug","msg":"Opened storage transaction (4).","name":"authz","plugin":"bundle","time":"2025-06-28T20:03:10Z"}
+{"level":"debug","msg":"Closing storage transaction (4).","name":"authz","plugin":"bundle","time":"2025-06-28T20:03:10Z"}
+{"level":"info","msg":"Bundle loaded and activated successfully. Etag updated to \"1f800cc58fc5073f6b4b3aa5ce4459a3\".","name":"authz","plugin":"bundle","time":"2025-06-28T20:03:10Z"}
+{"level":"debug","msg":"Waiting 8m55.606623331s before next download/retry.","time":"2025-06-28T20:03:10Z"}
+{"headers":{"Content-Length":["213"],"Content-Type":["application/json"],"Date":["Sat, 28 Jun 2025 20:03:10 GMT"]},"level":"debug","method":"POST","msg":"Received response.","status":"200 OK","time":"2025-06-28T20:03:10Z","url":"https://telemetry.openpolicyagent.org/v1/version"}
+{"current_version":"1.5.1","level":"debug","msg":"OPA is up to date.","time":"2025-06-28T20:03:10Z"}
+{"client_addr":"10.42.3.1:41614","level":"info","msg":"Received request.","req_body":"","req_id":1,"req_method":"GET","req_params":{},"req_path":"/health","time":"2025-06-28T20:03:19Z"}
+{"client_addr":"10.42.3.1:41614","level":"info","msg":"Sent response.","req_id":1,"req_method":"GET","req_path":"/health","resp_body":"{}\n","resp_bytes":3,"resp_duration":17.00075,"resp_status":200,"time":"2025-06-28T20:03:19Z"}
+{"client_addr":"10.42.3.1:53758","level":"info","msg":"Received request.","req_body":"","req_id":2,"req_method":"GET","req_params":{},"req_path":"/health","time":"2025-06-28T20:03:19Z"}
+{"client_addr":"10.42.3.1:53758","level":"info","msg":"Sent response.","req_id":2,"req_method":"GET","req_path":"/health","resp_body":"{}\n","resp_bytes":3,"resp_duration":0.48325,"resp_status":200,"time":"2025-06-28T20:03:19Z"}
+
+```
+
+10. **Test the API** 
+
+- Health Check
+
+```bash
+❯ curl --fail http://127.0.0.1:30080/health || echo "Server not reachable"
+
+{"status":"ok"}
+```
+
+- Invoke protected API resource `/api/v1/users` 
+
+```bash
+❯ make test.opa.integration
+[INFO] Started integration test of RESTAPI and OPA Integration
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 25.1.1
+[notice] To update, run: pip install --upgrade pip
+Base64 Encoded Secret: c2VjcmV0MTIz
+🔐 Generated JWT Token: eyJhbGciOiJIUzI1NiIsImtpZCI6InNhbXBsZS1hcHAiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJwa2kuZXhhbXBsZS5jb20iLCJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUxMTQ5NDMzfQ.bnskE69ni-Je083do7O7BK4Kdn2obEnRhvXlh78ZhuM
+
+✅ Sending request to your API service...host.docker.internal:30080
+send: b'GET /api/v1/users HTTP/1.1\r\nHost: host.docker.internal:30080\r\nAccept-Encoding: identity\r\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6InNhbXBsZS1hcHAiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJwa2kuZXhhbXBsZS5jb20iLCJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUxMTQ5NDMzfQ.bnskE69ni-Je083do7O7BK4Kdn2obEnRhvXlh78ZhuM\r\n\r\n'
+reply: 'HTTP/1.1 200 OK\r\n'
+header: content-length: 67
+header: connection: keep-alive
+header: content-type: application/json
+📥 API Response:
+Status: 200
+Body: [{"id":"88de0524-b3c2-4c98-ab66-9ed447ffb6fa","name":"John Smith"}]
+[INFO] Completed integration n test of RESTAPI and OPA Integration
 
 ```
 

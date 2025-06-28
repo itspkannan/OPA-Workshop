@@ -15,6 +15,8 @@ AUTHZ_PROFILE ?= authz-v1
 OPA_IMAGE ?= openpolicyagent/opa:latest
 POLICY_BUNDLE_DIST ?=bundle.tar.gz
 DOCKER_NETWORK ?= app
+API_PORT ?= 8080
+API_SERVER ?= restapi-auth-opa-integration
 
 
 ifeq ($(UNAME_S),Linux)
@@ -94,8 +96,17 @@ policy.eval: ## Evaluate the Rego Policies
 test.rego.integration: ## Test the policy against a valid input using JWT token
 	@echo "[INFO] Started integration test of Rego Policies"
 	@docker run --network $(DOCKER_NETWORK) --rm -v $(PWD)/scripts:/app -w /app python:3.12-slim \
-		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_policy.py"
+		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_opa_response.py"
 	@echo "[INFO] Completed integration test of Rego Policies"
+
+.PHONY: test.opa.integration
+test.opa.integration: ## Test the api which integrates with OPA
+	@echo "[INFO] Started integration test of RESTAPI and OPA Integration"
+	@docker run --network $(DOCKER_NETWORK) --rm -v $(PWD)/scripts:/app \
+		-e API_SERVER=$(API_SERVER) -e API_PORT=$(API_PORT) \
+		-w /app python:3.12-slim \
+		sh -c "pip install --no-cache-dir pyjwt >/dev/null && python3 validate_server_response.py"
+	@echo "[INFO] Completed integration n test of RESTAPI and OPA Integration"
 
 .PHONY: test.rego
 test.rego: ## Unit test of rego policies with mocking of data
@@ -112,7 +123,9 @@ clean.rego:  ## Cleanup policies build folder
 .PHONY: build.rego
 build.rego: clean.rego ## Build policies into a gzipped file
 	@mkdir -p $(PWD)/dist/authz
-	@docker run --rm -v $(PWD)/src/main/rego:/authz/src/main/rego/ -v $(PWD)/dist/authz:/authz/dist -w /authz $(OPA_IMAGE) build -o dist/$(POLICY_BUNDLE_DIST) src/main/rego/
+	@docker run --rm -v $(PWD)/src/main/rego:/authz/src/main/rego/ \
+	    -v $(PWD)/dist/authz:/authz/dist \
+	    -w /authz $(OPA_IMAGE) build -o dist/$(POLICY_BUNDLE_DIST) src/main/rego/
 
 build.python: ## Build python source
 	@poetry build --output dist/app

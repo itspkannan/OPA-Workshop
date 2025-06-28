@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: localhost:5000/restapi-auth-opa-integration-microservice
   # This sets the pull policy for images.
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
@@ -49,12 +49,17 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+# # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+# service:
+#   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+#   type: ClusterIP
+#   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+#   port: 8080
+
 service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 80
+  type: NodePort  # <- Expose the service externally
+  port: 8080
+  nodePort: 30080  # <- Optional. K3d allows this on your host network
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -88,12 +93,18 @@ resources: {}
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
-    path: /
-    port: http
+    path: /health
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10  
+
 readinessProbe:
   httpGet:
-    path: /
-    port: http
+    path: /health
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
@@ -123,3 +134,7 @@ tolerations: []
 affinity: {}
 
 namespace: restapi-opa
+
+env:
+  WEB_SERVER_HOST: "0.0.0.0"
+  PORT: "8080"

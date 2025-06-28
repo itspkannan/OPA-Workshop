@@ -231,8 +231,6 @@ WARNING: Running pip as the 'root' user can result in broken permissions and con
 
 [notice] A new release of pip is available: 25.0.1 -> 25.1.1
 [notice] To update, run: pip install --upgrade pip
-/app/validate_policy.py:12: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
 🔐 Generated JWT:
  eyJhbGciOiJIUzI1NiIsImtpZCI6InNhbXBsZS1hcHAiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzUwOTE5NjQ4fQ.qvCvtfE77iRnH8SfpVpkGJkbQPV6ftPM4UfN8fWYvxE
 

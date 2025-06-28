@@ -9,7 +9,6 @@ allow if{
     input.path = ["api", "v1", "users"]
     payload := decode(input.token)
     payload.role == "admin"
-
 }
 
 allow if {

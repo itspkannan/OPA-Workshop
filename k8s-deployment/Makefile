@@ -57,56 +57,61 @@ delete.cluster: ## Delete the k3d cluster
 
 .PHONY: get.nodes
 get.nodes: ## List Kubernetes nodes
-	kubectl get nodes -o wide
+	@kubectl get nodes -o wide
 
 .PHONY: describe.cluster
 describe.cluster: ## Describe the k3d cluster
-	k3d cluster list $(CLUSTER_NAME)
+	@k3d cluster list $(CLUSTER_NAME)
 
 .PHONY: build
 build: ## Build Python and Rego policies
-	cd $(SOURCE_DIR) && make  build
+	@cd $(SOURCE_DIR) && make  build
 
 build.push: build ## Build, push nginx image
-	docker tag "$(MICROSERVICE_IMAGE_NAME):latest" "$(IMAGE_NAME):0.1.0"
-	docker push "$(IMAGE_NAME):0.1.0"
+	@docker tag "$(MICROSERVICE_IMAGE_NAME):latest" "$(IMAGE_NAME):0.1.0"
+	@docker push "$(IMAGE_NAME):0.1.0"
 
 .PHONY: start.localstack
 start.localstack:  ## Start localstack service for S3
-	cd $(SOURCE_DIR) && DOCKER_NETWORK=$(DOCKER_NETWORK) make  start.localstack
+	@cd $(SOURCE_DIR) && DOCKER_NETWORK=$(DOCKER_NETWORK) make  start.localstack
 
 .PHONY: stop.localstack
 stop.localstack:
-	cd $(SOURCE_DIR) && make  stop.localstack
+	@cd $(SOURCE_DIR) && make  stop.localstack
 
 .PHONY: deploy.rego
 deploy.rego:  ## Deploy the policy to S3 bucket
-	cd $(SOURCE_DIR) ; DOCKER_NETWORK=$(DOCKER_NETWORK) make  deploy.rego deploy.rego.validate
+	@cd $(SOURCE_DIR) ; DOCKER_NETWORK=$(DOCKER_NETWORK) make  deploy.rego deploy.rego.validate
 
 deploy.microservice: ## Deploy microservice 
-	helm install restapi-opa restapi-opa --namespace $(APP_NAMESPACE) --create-namespace
+	@helm install restapi-opa restapi-opa --namespace $(APP_NAMESPACE) --create-namespace
+
+release.status: ## Show Helm release status
+	@helm status $(APP_RELEASE) -n $(APP_NAMESPACE)
 
 undeploy.microservice: ## Uninstall microservice 
-	helm uninstall restapi-opa --namespace $(APP_NAMESPACE) || true
-	kubectl delete namespace restapi-opa --ignore-not-found
+	@helm uninstall restapi-opa --namespace $(APP_NAMESPACE) || true
+	@kubectl delete namespace $(APP_NAMESPACE) --ignore-not-found
 
 test.deployment: ## Test if application is deployed
-	curl --fail http://localhost:8080 || echo "Microservices not reachable"
+	@curl --fail http://localhost:30080/health || echo "Microservices not reachable"
 
-test.rego.integration: ## Test an OPA auhtorized API endpoint
-	cd $(SOURCE_DIR) && make test.rego.integration
+test.opa.integration: ## Test an OPA auhtorized API endpoint
+	@cd $(SOURCE_DIR) && DOCKER_NETWORK=$(DOCKER_NETWORK) API_SERVER="host.docker.internal" API_PORT="30080" make test.opa.integration
 
-test: test.deployment test.rego.integration ## Perform test of the deployment
-
+test: test.deployment test.opa.integration ## Perform test of the deployment
 
 deploy.view: ## View  pods, svc, deployment
-	kubectl get configmap,pods,svc,deployment,replicaset,hpa  --namespace $(APP_NAMESPACE)
+	@kubectl get configmap,pods,svc,deployment,replicaset,hpa  --namespace $(APP_NAMESPACE)
 	
-delete.cluster: undeploy.microservice stop.registry delete.cluster delete.network ## Cleanup resource created during the session.
+delete.cluster: undeploy.microservice stop.registry delete.network ## Cleanup resource created during the session.
+	@k3d cluster delete k3d-$(CLUSTER_NAME)
 
-cluster.events: ## View cluster event for the app namespace
-	kubectl get events --namespace $(APP_NAMESPACE) --sort-by=.metadata.creationTimestamp
+events: ## Show recent warning events
+	@kubectl get events -n $(APP_NAMESPACE) --field-selector type=Warning --sort-by=.metadata.creationTimestamp
 
+pod.list: ## List all pods with labels
+	@kubectl get pods -n $(APP_NAMESPACE) --show-labels
 
 pod.describe: ## Describe pod to view more details 
 	$(eval POD_NAME := $(shell kubectl get pods -n $(APP_NAMESPACE) -l $(APP_LABEL_KEY)=$(APP_LABEL_VALUE) -o jsonpath="{.items[0].metadata.name}" 2>/dev/null || echo ""))
@@ -125,3 +130,6 @@ pod.logs: ## Fetch logs from the pod
 	fi
 	@echo "📜 Logs for pod: $(POD_NAME)"
 	@kubectl logs -n $(APP_NAMESPACE) $(POD_NAME) --all-containers=true
+
+service.list: ## List all services in the namespace
+	@kubectl get svc -n $(APP_NAMESPACE)

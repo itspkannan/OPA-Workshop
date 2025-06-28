@@ -21,9 +21,10 @@ def generate_jwt(secret: str, role: str, name: str):
     token = jwt.encode(payload, secret, algorithm="HS256", headers=headers)
     return token
 
-SECRET = "secret123"
-secret_encoded_base64url = base64url_encode(SECRET)
-print("Base64url Encoded Secret (for OPA):", secret_encoded_base64url)
+if __name__ == "__main__":
+    SECRET = "secret123"
+    secret_encoded_base64url = base64url_encode(SECRET)
+    print("Base64url Encoded Secret (for OPA):", secret_encoded_base64url)
 
-token = generate_jwt(SECRET, 'admin', 'Jane Doe')
-print("🔐 Generated JWT:\n", token)
+    token = generate_jwt(SECRET, 'admin', 'Jane Doe')
+    print("🔐 Generated JWT:\n", token)
