@@ -2,6 +2,43 @@
 
 This project is an extension of [Project1: Rest API Authz OPA Integration](../restapi-auth-opa-integration/README.md) to deploy on a Kubernetes cluster with OPA as sidecar and policy deployed in AWS S3 ( locally using localstack S3).
 
+
+## 🧭 Architecture Overview
+
+![alt text](architecture.png)
+
+The system is designed with the following components:
+
+1. **Ingress Controller:**
+   Handles incoming API calls from external clients and routes them to services inside the Kubernetes cluster.
+
+2. **Kubernetes (EKS):**
+   The core infrastructure where the application and OPA services are deployed. Locally `k3d` is used to create K8s cluster.
+
+3. **Application Service (Pod):**
+   A RESTful microservice running in a Pod that handles business logic and external API calls. Before accessing any sensitive resources, it enforces authorization policies.
+
+4. **Open Policy Agent (OPA):**
+   Embedded as a sidecar or standalone service, OPA evaluates incoming requests based on defined Rego policies. The application queries OPA to determine whether an action is allowed.
+
+5. **AWS S3**
+   The application accesses S3 for storage operations **only after** authorization is granted by OPA. The pod can be configured using [pod level IAM](https://medium.com/kotaicode/aws-iam-roles-for-kubernetes-pods-in-eks-5fdbb2df4ed0) which enabled access to AWS s3 resources. In production, this points to actual AWS S3. Locally, we use LocalStack to simulate AWS services.
+
+6. **Private Network:**
+   All components (Ingress, App, OPA) communicate internally within a secure, private network.
+
+
+## 🧪 Local Development
+
+For local testing and development:
+
+* **K3d** is used to simulate the Kubernetes environment (as a lightweight alternative to EKS).
+* **LocalStack** emulates AWS services like S3 so that real cloud access is not needed.
+
+> This enables fully local, policy-driven development and testing with OPA + S3 access patterns.
+
+
+
 ## Project
 
 ### Structure
