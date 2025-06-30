@@ -1,8 +1,8 @@
-# Open Policy Agent Authz Workshop
+# Open Policy Agent Authorization Workshop
 
 A hands-on workshop project to explore modern authorization using [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) and Rego policies.
 
-## Project 1: RestAPI Auhtorization using OPA
+## Project 1: RestAPI Authorization using OPA
 
 **Goal**: Use OPA to enforce basic access control based on HTTP method, path, and user role (via header).
 
@@ -14,9 +14,9 @@ The project demonstrates 3 deployment of rego policies where a JWT token is used
 
 All of above is deployed via docker compose as a mean of demonstration of integration of microservice and OPA
 
-## Project 2: Integration of Oauth2 + OIDC provider to OPA for Rest API authorization
+## Project 2: Integration of Oauth2 + OIDC provider to OPA for Rest API Authorization
 
-TODO
+**TODO**
 
 **Goal**: Extend project 1 to demontrate a OPA + Oauth2/OIDC Provider integration
 
@@ -24,7 +24,7 @@ TODO
 - Integrate the app to generate JWT token and authorize using OPA + Oauth2 provider.
 
 
-## Project 3: RestAPI Auhtorization using OPA - Kubernetes Deployment
+## Project 3: RestAPI Authorization using OPA - Kubernetes Deployment
 
 **Goal**: Extend project 1 to demontrate a OPA Sidecar deployment in Kubernetes using K3d.
 
@@ -33,10 +33,18 @@ TODO
 - Deploy to AWS S3 policy bundle and integrate to OPA.
 
 
-## Project 4: RestAPI Auhtorization using OPA  + Oauth2/OIDC provider - Kubernetes Deployment
+## Project 4: RestAPI Authorization using OPA  + Oauth2/OIDC provider - Kubernetes Deployment
 
-TODO
+**TODO**
 
-**Goal**: Extend project 1 to demontrate a OPA Sidecar deployment in Kubernetes using K3d with Oauth2 provider integratiojn.
+**Goal**: Extend project 1 to demontrate a OPA Sidecar deployment in Kubernetes using K3d with Oauth2 provider integration.
 
 - Combine the work done in Project 2 and Project 3
+
+
+## Project 5: RestAPI Authorization using OPA  + Oauth2/OIDC provider - Kubernetes Deployment
+
+**TODO**
+
+**Goal**: Implement Project 4 using a Java Framework ( eg Spring).
+
