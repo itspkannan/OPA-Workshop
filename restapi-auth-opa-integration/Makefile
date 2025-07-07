@@ -76,7 +76,7 @@ format.python:  ## Format code using Ruff (Black-compatible)
 .PHONY: lint.python
 lint.python:   ## Run static analysis with Ruff and Mypy
 	@poetry run ruff check .
-	@poetry run mypy basic_opa_integration
+	@poetry run mypy src/main/python
 
 .PHONY: python.test
 test.python:  ## Run tests with Pytest and show coverage

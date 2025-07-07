@@ -44,10 +44,7 @@ def __create_app(config_dir: str, app_name: str, **kwargs):
 
 def startup(config_dir: str, app_name: str = 'OPAWithSanic'):
     loader = AppLoader(factory=partial(__create_app, config_dir, app_name))
-
-    # Safe to load manually just for prepare()
     app = loader.load()
-
     config_service = Container.resolve(ConfigurationService)
     server_config = config_service.load(f'{config_dir}/server_config.yaml', ServerConfig, 'server')
 

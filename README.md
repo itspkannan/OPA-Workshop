@@ -29,14 +29,14 @@ All of above is deployed via docker compose as a mean of demonstration of integr
 
 **Goal**: Extend project 1 to demontrate a OPA Sidecar deployment in Kubernetes using K3d with Oauth2 provider integration.
 
-- Combine the work done in Project 2 and Project 3
+- Combine the work done in Project 2 and Project 3 using Python, Sanic
 
 
 ## Project 4: RestAPI Authorization using OPA  + Oauth2/OIDC provider - Kubernetes Deployment
 
 **TODO**
 
-**Goal**: Implement Project 4 using a Java Framework ( eg Spring).
+**Goal**: Replicate Project 3 using a Java Framework ( eg Spring).
 
 
 * ✅ `Done`
