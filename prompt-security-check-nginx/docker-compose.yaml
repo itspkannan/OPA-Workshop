@@ -1,0 +1,68 @@
+
+
+services:
+  llm_service:
+    image: ollama/ollama
+    hostname: llm_service
+    container_name: llm_service
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - llmdata:/root/.ollama:rw
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+        reservations:
+          memory: 5g
+
+  llm_service_init:
+    image: curlimages/curl:latest
+    container_name: llm_service-init
+    depends_on:
+      - llm_service
+    volumes:
+      - ./scripts/init_ollama.sh:/init_ollama.sh:ro
+    entrypoint: ["/bin/sh", "/init_ollama.sh"]
+    environment:
+      - LLM_MODEL=${LLM_MODEL:-tinyllama}
+    
+  security_service:
+    container_name: security_service
+    hostname: security_service
+    image: openpolicyagent/opa:latest
+    ports:
+      - "127.0.0.1:8181:8181"
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=debug"           
+      - "--log-format=json-pretty" 
+      - "/policies"
+    volumes:
+      - $PWD/policies:/policies:ro
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  proxy_service:
+    image: nginx-opa-llm-prompt-check:latest
+    container_name: proxy_service
+    hostname: proxy_service
+    volumes:
+      - $PWD/nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - $PWD/nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      - security_service
+      - llm_service
+  
+volumes:
+  llmdata:

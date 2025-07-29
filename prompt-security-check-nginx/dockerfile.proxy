@@ -1,0 +1,23 @@
+FROM debian:bullseye-slim
+
+ENV OPENRESTY_VERSION=1.21.4.2
+ENV PREFIX=/usr/local/openresty
+
+RUN apt-get update && apt-get install -y \
+    curl wget git gnupg2 unzip make gcc \
+    libreadline-dev libssl-dev libpcre3-dev zlib1g-dev \
+    libncurses5-dev build-essential luarocks
+
+RUN curl -sSL https://openresty.org/download/openresty-${OPENRESTY_VERSION}.tar.gz | tar xz && \
+    cd openresty-${OPENRESTY_VERSION} && \
+    ./configure --prefix=${PREFIX} --with-luajit && \
+    make -j$(nproc) && make install && \
+    cd .. && rm -rf openresty-${OPENRESTY_VERSION}
+
+ENV PATH="${PREFIX}/nginx/sbin:${PREFIX}/bin:$PATH"
+
+RUN luarocks install lua-resty-http && \
+    luarocks install lua-cjson && \
+    luarocks install lua-resty-openssl
+
+CMD ["openresty", "-g", "daemon off;"]
