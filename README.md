@@ -2,43 +2,59 @@
 
 A hands-on workshop project to explore modern authorization using [Open Policy Agent (OPA)](https://www.openpolicyagent.org/) and Rego policies.
 
-## Project 1: ✅  RestAPI Authorization using OPA
+---
+
+## Project 1: ✅ RestAPI Authorization using OPA
 
 **Goal**: Use OPA to enforce basic access control based on HTTP method, path, and user role (via header).
 
-The project demonstrates 3 deployment of rego policies where a JWT token is used as authenticated user with a valid token.
+The project demonstrates 3 deployment modes of Rego policies where a JWT token is used as an authenticated user with a valid token.
 
-- Load the Rego Policies from local file system
-- Build the policies into a deployable gzipped file and served to OPA via remote services.
-- Build the policies into a deployable gzipped file and served to AWS S3 ( for pod using localstack S3).
+- Load the Rego policies from local file system.
+- Build the policies into a deployable gzipped bundle served to OPA via a remote service.
+- Store and serve policies from AWS S3 (emulated using LocalStack).
 
-All of above is deployed via docker compose as a mean of demonstration of integration of microservice and OPA
+All of the above is deployed via Docker Compose to demonstrate integration of microservices with OPA.
 
-## Project 2: ✅  RestAPI Authorization using OPA - Kubernetes Deployment
+---
 
-**Goal**: Extend project 1 to demontrate a OPA Sidecar deployment in Kubernetes using K3d.
+## Project 2: ✅ RestAPI Authorization using OPA – Kubernetes Deployment
 
-- Create K3d cluster.
-- Create helm deployment charts for the app.
-- Deploy to AWS S3 policy bundle and integrate to OPA.
+**Goal**: Extend Project 1 to demonstrate OPA sidecar deployment in Kubernetes using K3d.
 
+- Create a K3d cluster.
+- Define Helm charts for the microservice + OPA sidecar.
+- Deploy policy bundles via AWS S3 and integrate them with OPA.
 
-## Project 3: 🔄  RestAPI Authorization using OPA  + Oauth2/OIDC provider - Kubernetes Deployment
+---
 
-**TODO**
+## Project 3: 🔄 RestAPI Authorization using OPA + OAuth2/OIDC Provider – Kubernetes Deployment
 
-**Goal**: Extend project 1 to demontrate a OPA Sidecar deployment in Kubernetes using K3d with Oauth2 provider integration.
+**Goal**: Extend Project 2 by integrating OPA with an OAuth2/OIDC provider.
 
-- Combine the work done in Project 2 and Project 3 using Python, Sanic
+- Combine previous projects into a unified Python-based app using Sanic.
+- Include JWT validation and claim-based policy enforcement.
+- Test deployments via K3d and sidecar OPA.
 
+---
 
-## Project 4: RestAPI Authorization using OPA  + Oauth2/OIDC provider - Kubernetes Deployment
+## Project 4: ❌ RestAPI Authorization using OPA + OAuth2/OIDC Provider – Java Framework
 
-**TODO**
+**Goal**: Replicate Project 3 using a Java framework (e.g., Spring Boot or Quarkus).
 
-**Goal**: Replicate Project 3 using a Java Framework ( eg Spring).
+---
 
+## Project 5:  ✅ OPA Authorization for LLM Prompt Filtering via NGINX + OpenResty + Ollama
 
+**Goal**: Use OPA to filter LLM prompts at the NGINX layer before forwarding to the Ollama model backend.
+
+- Use `access_by_lua_block` in OpenResty to intercept incoming prompts.
+- Call OPA (`/v1/data/.../allow`) to validate prompt content.
+- Forward validated prompts to `llm_service` (Ollama).
+
+---
+
+### Legend:
 * ✅ `Done`
 * 🔄 `In Progress`
 * ❌ `Not Started`
