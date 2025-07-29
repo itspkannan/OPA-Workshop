@@ -1,4 +1,6 @@
-# 🔐 NGINX + OPA + Ollama - Prompt Policy check
+# 🔐 NGINX + OPA + Ollama - Prompt Policy check 
+
+[TODO: I think it is better to move to a different repo since is focused on OLLAMA security checks]
 
 This project enforces runtime validation of prompts sent to an LLM (Ollama) using:
 - **NGINX + Lua** to intercept requests
