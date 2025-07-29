@@ -56,13 +56,35 @@ services:
     container_name: proxy_service
     hostname: proxy_service
     volumes:
-      - $PWD/nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
-      - $PWD/nginx/conf.d:/etc/nginx/conf.d:ro
+      - $PWD/config/nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - $PWD/config/nginx/conf.d:/etc/nginx/conf.d:ro
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       - security_service
       - llm_service
+
+  metrics_service:
+    hostname: metrics_service
+    container_name: metrics_service
+    image: prom/prometheus:latest
+    volumes:
+      - $PWD/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  metrics_service_dashboard:
+    hostname: metrics_service_dashboard
+    container_name: metrics_service_dashboard
+    image: grafana/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - $PWD/volume/grafana/dashboards:/var/lib/grafana/dashboards
+      - $PWD/volume/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
   
 volumes:
   llmdata:

@@ -1,0 +1,56 @@
+{
+  "id": null,
+  "uid": "ollama-observability",
+  "title": "Ollama Observability",
+  "tags": ["ollama", "llm", "observability"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Total Requests",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "sum(http_requests_total)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total Tokens Generated",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "sum(ollama_token_total)",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Latency (p95)",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(ollama_latency_seconds_bucket[1m])) by (le))",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Error Count",
+      "gridPos": { "x": 0, "y": 10, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "sum(ollama_errors_total)",
+          "refId": "D"
+        }
+      ]
+    }
+  ]
+}
