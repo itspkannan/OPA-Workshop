@@ -42,15 +42,6 @@ All of the above is deployed via Docker Compose to demonstrate integration of mi
 
 **Goal**: Replicate Project 3 using a Java framework (e.g., Spring Boot or Quarkus).
 
----
-
-## Project 5:  ✅ OPA Authorization for LLM Prompt Filtering via NGINX + OpenResty + Ollama
-
-**Goal**: Use OPA to filter LLM prompts at the NGINX layer before forwarding to the Ollama model backend.
-
-- Use `access_by_lua_block` in OpenResty to intercept incoming prompts.
-- Call OPA (`/v1/data/.../allow`) to validate prompt content.
-- Forward validated prompts to `llm_service` (Ollama).
 
 ---
 
